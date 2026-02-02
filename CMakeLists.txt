@@ -5,6 +5,8 @@ set(CMAKE_C_STANDARD 90)
 
 add_subdirectory(vendor/SDL EXCLUDE_FROM_ALL)
 
-add_executable(sdl_pixel_draw src/main.c)
+add_executable(sdl_pixel_draw
+        src/main.c
+        src/file_storage.c)
 
 target_link_libraries(sdl_pixel_draw PRIVATE SDL3::SDL3)
