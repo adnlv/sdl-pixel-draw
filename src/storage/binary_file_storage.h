@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "../pixel.h"
+#include "../canvas.h"
 
 FILE *open_binary_file(const char *filename);
 

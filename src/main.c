@@ -16,8 +16,8 @@ static void write(FILE *file) {
 }
 
 static void read(FILE *file) {
-    uint8_t width = 5;
-    uint8_t height = 1;
+    uint8_t width = CANVAS_MAX_WIDTH;
+    uint8_t height = CANVAS_MAX_HEIGHT;
     pixel_t pixels[width * height];
 
     read_pixels_from_binary_file(pixels, &width, &height, file);
