@@ -1,42 +1,34 @@
-#include "storage/binary_file_storage.h"
+#include <stdlib.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_render.h>
 
-static void write(FILE *file) {
-    pixel_t pixels[5] = {
-        {0x00, 0x00, 0x00, 0xFF},
-        {0xFF, 0x00, 0x00, 0xFF},
-        {0x00, 0xFF, 0x00, 0xFF},
-        {0x00, 0x00, 0xFF, 0xFF},
-        {0xFF, 0xFF, 0xFF, 0xFF},
-    };
-
-    const uint8_t width = 5;
-    const uint8_t height = 1;
-
-    save_pixels_as_binary_file(pixels, width, height, file);
-}
-
-static void read(FILE *file) {
-    uint8_t width = CANVAS_MAX_WIDTH;
-    uint8_t height = CANVAS_MAX_HEIGHT;
-    pixel_t pixels[width * height];
-
-    read_pixels_from_binary_file(pixels, &width, &height, file);
-
-    printf("W:%d H:%d\n", width, height);
-
-    int i = 0;
-    for (; i < width * height; ++i) {
-        const pixel_t pixel = pixels[i];
-        printf("r:%x g:%x b:%x a:%x\n", pixel.r, pixel.g, pixel.b, pixel.a);
+static void init(void) {
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
+        SDL_Log("failed to initialize SDL: %s", SDL_GetError());
+        exit(SDL_APP_FAILURE);
     }
 }
 
-int main(void) {
-    FILE *file = open_binary_file("image.bin");
+static void quit(SDL_Window *window, SDL_Renderer *renderer) {
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+}
 
-    write(file);
-    read(file);
+static void create_window_and_renderer(SDL_Window **window, SDL_Renderer **renderer) {
+    if (!SDL_CreateWindowAndRenderer("Pixel Draw", 720, 480, SDL_WINDOW_INPUT_FOCUS, window, renderer)) {
+        SDL_Log("failed to create window and renderer: %s", SDL_GetError());
+        exit(SDL_APP_FAILURE);
+    }
+}
 
-    close_binary_file(file);
-    return 0;
+int main(int argc, char *argv[]) {
+    init();
+
+    SDL_Window *window;
+    SDL_Renderer *renderer;
+
+    create_window_and_renderer(&window, &renderer);
+
+    quit(window, renderer);
 }
