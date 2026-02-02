@@ -63,8 +63,55 @@ int main(void) {
             }
         }
 
-        SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+        int out_width = 0;
+        int out_height = 0;
+        SDL_GetCurrentRenderOutputSize(renderer, &out_width, &out_height);
+
+        const float gap = 4.0f;
+
+        SDL_FRect top_nav;
+        const float top_nav_min_height = 40.0f;
+        const float top_nav_max_height = 50.0f;
+        const float top_nav_scaling_fac = 0.01f;
+        top_nav.x = 0;
+        top_nav.y = 0;
+        top_nav.w = (float) out_width;
+        top_nav.h = top_nav_min_height + (float) out_height * top_nav_scaling_fac;
+        if (top_nav.h > top_nav_max_height) {
+            top_nav.h = top_nav_max_height;
+        }
+
+        const float left_nav_min_width = 60.0f;
+        const float left_nav_max_width = 160.0f;
+        const float left_nav_scaling_fac = 0.08f;
+        SDL_FRect left_nav;
+        left_nav.x = 0;
+        left_nav.y = top_nav.h + gap;
+        left_nav.w = left_nav_min_width + (float) out_width * left_nav_scaling_fac;
+        if (left_nav.w > left_nav_max_width) {
+            left_nav.w = left_nav_max_width;
+        }
+        left_nav.h = (float) out_height - left_nav.y - gap;
+
+        SDL_FRect draw_box;
+        draw_box.x = left_nav.x + left_nav.w + gap;
+        draw_box.y = left_nav.y;
+        draw_box.w = (float) out_width - draw_box.x - gap;
+        draw_box.h = (float) out_height - draw_box.y - gap;
+
+        const SDL_Color black_color = {0, 0, 0, 0xFF};
+        const SDL_Color red_color = {0xFF, 0, 0, 0xFF};
+        const SDL_Color green_color = {0, 0xFF, 0, 0xFF};
+        const SDL_Color blue_color = {0, 0, 0xFF, 0xFF};
+
+        SDL_SetRenderDrawColor(renderer, black_color.r, black_color.g, black_color.b, black_color.a);
         SDL_RenderClear(renderer);
+        SDL_SetRenderDrawColor(renderer, red_color.r, red_color.g, red_color.b, red_color.a);
+        SDL_RenderRect(renderer, &top_nav);
+        SDL_SetRenderDrawColor(renderer, green_color.r, green_color.g, green_color.b, green_color.a);
+        SDL_RenderRect(renderer, &left_nav);
+        SDL_SetRenderDrawColor(renderer, blue_color.r, blue_color.g, blue_color.b, blue_color.a);
+        SDL_RenderRect(renderer, &draw_box);
         SDL_RenderPresent(renderer);
     }
 
