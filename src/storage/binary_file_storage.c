@@ -8,20 +8,26 @@ int close_binary_file(FILE *file) {
     return fclose(file);
 }
 
-uint16_t save_pixel_buffer_as_binary_file(const buffer_t *buffer, FILE *file) {
-    uint16_t bytes = 0;
+uint16_t save_pixel_buffer_as_binary_file(const pixel_t *pixels,
+                                          const uint8_t width,
+                                          const uint8_t height,
+                                          FILE *file) {
+    uint16_t items = 0;
     fseek(file, 0, SEEK_SET);
-    bytes += fwrite(&buffer->width, sizeof(uint8_t), 1, file);
-    bytes += fwrite(&buffer->height, sizeof(uint8_t), 1, file);
-    bytes += fwrite(buffer->pixels, sizeof(pixel_t), buffer->width * buffer->height, file);
-    return bytes;
+    items += fwrite(&width, sizeof(uint8_t), 1, file);
+    items += fwrite(&height, sizeof(uint8_t), 1, file);
+    items += fwrite(pixels, sizeof(pixel_t), width * height, file);
+    return items;
 }
 
-uint16_t read_pixel_buffer_from_binary_file(buffer_t *buffer, FILE *file) {
-    uint16_t bytes = 0;
+uint16_t read_pixel_buffer_from_binary_file(pixel_t *pixels,
+                                            uint8_t *width,
+                                            uint8_t *height,
+                                            FILE *file) {
+    uint16_t items = 0;
     fseek(file, 0, SEEK_SET);
-    bytes += fread(&buffer->width, sizeof(uint8_t), 1, file);
-    bytes += fread(&buffer->height, sizeof(uint8_t), 1, file);
-    bytes += fread(buffer->pixels, sizeof(pixel_t), buffer->width * buffer->height, file);
-    return bytes;
+    items += fread(width, sizeof(uint8_t), 1, file);
+    items += fread(height, sizeof(uint8_t), 1, file);
+    items += fread(pixels, sizeof(pixel_t), *width * *height, file);
+    return items;
 }
