@@ -32,7 +32,14 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
         return SDL_APP_FAILURE;
     }
 
-    if (!SDL_CreateWindowAndRenderer("Pixel Draw", 720, 480, SDL_WINDOW_INPUT_FOCUS, &window, &renderer)) {
+    const int width = 720;
+    const int height = 480;
+    const char title[] = "Pixel Draw";
+    const SDL_WindowFlags flags = SDL_WINDOW_RESIZABLE |
+                                  SDL_WINDOW_INPUT_FOCUS |
+                                  SDL_WINDOW_HIGH_PIXEL_DENSITY;
+
+    if (!SDL_CreateWindowAndRenderer(title, width, height, flags, &window, &renderer)) {
         SDL_Log("Failed to create window and renderer: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
