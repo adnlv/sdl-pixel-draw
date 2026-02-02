@@ -1,5 +1,3 @@
-#include <jack/weakmacros.h>
-
 #include "storage/binary_file_storage.h"
 
 static void write(FILE *file) {
