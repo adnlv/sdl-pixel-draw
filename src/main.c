@@ -14,7 +14,7 @@ static void write(FILE *file) {
     const uint8_t width = 5;
     const uint8_t height = 1;
 
-    save_pixel_buffer_as_binary_file(pixels, width, height, file);
+    save_pixels_as_binary_file(pixels, width, height, file);
 }
 
 static void read(FILE *file) {
@@ -22,7 +22,7 @@ static void read(FILE *file) {
     uint8_t height = 1;
     pixel_t pixels[width * height];
 
-    read_pixel_buffer_from_binary_file(pixels, &width, &height, file);
+    read_pixels_from_binary_file(pixels, &width, &height, file);
 
     printf("W:%d H:%d\n", width, height);
 
