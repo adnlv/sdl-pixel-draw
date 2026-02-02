@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <SDL3/SDL.h>
-#include <SDL3/SDL_render.h>
 
 static int init(void) {
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
@@ -25,6 +24,13 @@ static int create_window_and_renderer(SDL_Window **window, SDL_Renderer **render
     }
 
     return SDL_APP_CONTINUE;
+}
+
+static bool is_point_intersects_rect(const SDL_FPoint *const point, const SDL_FRect *const rect) {
+    return point->x >= rect->x &&
+           point->x <= rect->x + rect->w &&
+           point->y >= rect->y &&
+           point->y <= rect->y + rect->h;
 }
 
 static void destroy_window_and_renderer(SDL_Window *window, SDL_Renderer *renderer) {
@@ -59,7 +65,8 @@ int main(void) {
                 case SDL_EVENT_QUIT:
                     is_running = false;
                     break;
-                default: ;
+                default:
+                    break;
             }
         }
 
@@ -99,18 +106,35 @@ int main(void) {
         draw_box.w = (float) out_width - draw_box.x - gap;
         draw_box.h = (float) out_height - draw_box.y - gap;
 
-        const SDL_Color black_color = {0, 0, 0, 0xFF};
-        const SDL_Color red_color = {0xFF, 0, 0, 0xFF};
-        const SDL_Color green_color = {0, 0xFF, 0, 0xFF};
-        const SDL_Color blue_color = {0, 0, 0xFF, 0xFF};
+        const SDL_Color white = {0xFF, 0xFF, 0xFF, 0xFF};
+        const SDL_Color black = {0, 0, 0, 0xFF};
+        const SDL_Color red = {0xFF, 0, 0, 0xFF};
+        const SDL_Color green = {0, 0xFF, 0, 0xFF};
+        const SDL_Color blue = {0, 0, 0xFF, 0xFF};
 
-        SDL_SetRenderDrawColor(renderer, black_color.r, black_color.g, black_color.b, black_color.a);
+        SDL_SetRenderDrawColor(renderer, black.r, black.g, black.b, black.a);
         SDL_RenderClear(renderer);
-        SDL_SetRenderDrawColor(renderer, red_color.r, red_color.g, red_color.b, red_color.a);
+
+        SDL_SetRenderDrawColor(renderer, white.r >> 2, white.g >> 2, white.b >> 2, white.a);
+
+        SDL_FPoint mouse_pos;
+        const SDL_MouseButtonFlags mouse_flags = SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
+
+        if (mouse_flags & SDL_BUTTON_LEFT) {
+            if (is_point_intersects_rect(&mouse_pos, &top_nav)) {
+                SDL_RenderFillRect(renderer, &top_nav);
+            } else if (is_point_intersects_rect(&mouse_pos, &left_nav)) {
+                SDL_RenderFillRect(renderer, &left_nav);
+            } else if (is_point_intersects_rect(&mouse_pos, &draw_box)) {
+                SDL_RenderFillRect(renderer, &draw_box);
+            }
+        }
+
+        SDL_SetRenderDrawColor(renderer, red.r, red.g, red.b, red.a);
         SDL_RenderRect(renderer, &top_nav);
-        SDL_SetRenderDrawColor(renderer, green_color.r, green_color.g, green_color.b, green_color.a);
+        SDL_SetRenderDrawColor(renderer, green.r, green.g, green.b, green.a);
         SDL_RenderRect(renderer, &left_nav);
-        SDL_SetRenderDrawColor(renderer, blue_color.r, blue_color.g, blue_color.b, blue_color.a);
+        SDL_SetRenderDrawColor(renderer, blue.r, blue.g, blue.b, blue.a);
         SDL_RenderRect(renderer, &draw_box);
         SDL_RenderPresent(renderer);
     }
