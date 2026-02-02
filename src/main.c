@@ -22,6 +22,16 @@ static void create_window_and_renderer(SDL_Window **window, SDL_Renderer **rende
     }
 }
 
+static int handle_event(const SDL_Event *event) {
+    switch (event->type) {
+        case SDL_EVENT_QUIT:
+            return SDL_APP_SUCCESS;
+        default: ;
+    }
+
+    return SDL_APP_CONTINUE;
+}
+
 int main(int argc, char *argv[]) {
     init();
 
@@ -29,6 +39,17 @@ int main(int argc, char *argv[]) {
     SDL_Renderer *renderer;
 
     create_window_and_renderer(&window, &renderer);
+
+    SDL_Event event;
+    int is_running = true;
+    while (is_running) {
+        while (SDL_PollEvent(&event)) {
+            if (handle_event(&event) != SDL_APP_CONTINUE) {
+                is_running = false;
+                break;
+            }
+        }
+    }
 
     quit(window, renderer);
 }
