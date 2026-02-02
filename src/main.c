@@ -2,7 +2,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_render.h>
 
-static int init() {
+static int init(void) {
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
         SDL_Log("Failed to initialize SDL: %s", SDL_GetError());
         return SDL_APP_FAILURE;
@@ -32,11 +32,11 @@ static void destroy_window_and_renderer(SDL_Window *window, SDL_Renderer *render
     SDL_DestroyWindow(window);
 }
 
-static void quit() {
+static void quit(void) {
     SDL_Quit();
 }
 
-int main(int argc, char *argv[]) {
+int main(void) {
     int status = 0;
     int is_running = true;
     SDL_Window *window = NULL;
