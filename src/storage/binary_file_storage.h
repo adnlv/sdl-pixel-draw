@@ -2,7 +2,6 @@
 #define SDL_PIXEL_DRAW_BINARY_FILE_STORAGE_H
 
 #include <stdio.h>
-#include <stdint.h>
 
 #include "../canvas.h"
 
