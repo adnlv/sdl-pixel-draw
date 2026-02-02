@@ -8,6 +8,24 @@
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
 
+static void renderText(void *appstate) {
+    const char *message = "Welcome to Pixel Draw";
+    const float scale = 4.0f;
+    int w = 0, h = 0;
+
+    SDL_GetCurrentRenderOutputSize(renderer, &w, &h);
+    SDL_SetRenderScale(renderer, scale, scale);
+
+    const float x = (w / scale - SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE * SDL_strlen(message)) / 2;
+    const float y = (h / scale - SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE) / 2;
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0xFF);
+    SDL_RenderClear(renderer);
+    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    SDL_RenderDebugText(renderer, x, y, message);
+    SDL_RenderPresent(renderer);
+}
+
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
         SDL_Log("Failed to initialize SDL: %s", SDL_GetError());
@@ -31,6 +49,8 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 }
 
 SDL_AppResult SDL_AppIterate(void *appstate) {
+    renderText(appstate);
+
     return SDL_APP_CONTINUE;
 }
 
