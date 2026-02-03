@@ -1,6 +1,15 @@
 #include <stdlib.h>
 #include <SDL3/SDL.h>
 
+static const SDL_Color white = {0xFF, 0xFF, 0xFF, 0xFF};
+static const SDL_Color black = {0, 0, 0, 0xFF};
+static const SDL_Color red = {0xFF, 0, 0, 0xFF};
+static const SDL_Color green = {0, 0xFF, 0, 0xFF};
+static const SDL_Color blue = {0, 0, 0xFF, 0xFF};
+static const SDL_Color yellow = {0xFF, 0xFF, 0x00, 0xFF};
+static const SDL_Color magenta = {0xFF, 0x00, 0xFF, 0xFF};
+static const SDL_Color cyan = {0x00, 0xFF, 0xFF, 0xFF};
+
 static int init(void) {
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
         SDL_Log("Failed to initialize SDL: %s", SDL_GetError());
@@ -91,28 +100,10 @@ int main(void) {
         return status;
     }
 
-    const SDL_Color white = {0xFF, 0xFF, 0xFF, 0xFF};
-    const SDL_Color black = {0, 0, 0, 0xFF};
-    const SDL_Color red = {0xFF, 0, 0, 0xFF};
-    const SDL_Color green = {0, 0xFF, 0, 0xFF};
-    const SDL_Color blue = {0, 0, 0xFF, 0xFF};
-    const SDL_Color yellow = {0xFF, 0xFF, 0x00, 0xFF};
-    const SDL_Color magenta = {0xFF, 0x00, 0xFF, 0xFF};
-    const SDL_Color cyan = {0x00, 0xFF, 0xFF, 0xFF};
+    const int color_palette_length = 8;
+    const SDL_Color color_palette[] = {red, green, blue, yellow, magenta, cyan, white, black};
 
     SDL_Color picked_color = white;
-
-    const int palette_length = 8;
-    SDL_Color palette[] = {
-        red,
-        green,
-        blue,
-        yellow,
-        magenta,
-        cyan,
-        white,
-        black,
-    };
 
     while (is_running) {
         while (SDL_PollEvent(&event)) {
@@ -181,14 +172,14 @@ int main(void) {
         palette_rect.w = left_nav.w;
         palette_rect.h = left_nav.h - picked_color_box.h - gap;
 
-        SDL_FRect palette_color_rects[palette_length];
+        SDL_FRect palette_color_rects[color_palette_length];
 
         const int palette_colors_per_row = 2;
         render_color_palette(renderer,
                              &palette_rect,
-                             palette_length,
+                             color_palette_length,
                              palette_colors_per_row,
-                             palette,
+                             color_palette,
                              palette_color_rects);
 
         SDL_SetRenderDrawColor(renderer, red.r, red.g, red.b, red.a);
