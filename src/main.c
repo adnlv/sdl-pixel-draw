@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <SDL3/SDL.h>
 
+#include "canvas.h"
+
 static const SDL_Color white = {0xFF, 0xFF, 0xFF, 0xFF};
 static const SDL_Color black = {0, 0, 0, 0xFF};
 static const SDL_Color red = {0xFF, 0, 0, 0xFF};
@@ -174,7 +176,7 @@ static void iterate(SDL_Renderer *renderer) {
     SDL_Rect out;
     SDL_FRect top_navigation_bar;
     SDL_FRect left_navigation_bar;
-    SDL_FRect canvas;
+    SDL_FRect canvas_rect;
     SDL_FRect picked_color_rect;
     SDL_FRect color_palette_rect;
 
@@ -183,13 +185,22 @@ static void iterate(SDL_Renderer *renderer) {
 
     SDL_Color picked_color = white;
 
+    SDL_Texture *canvas = SDL_CreateTexture(renderer,
+                                            SDL_PIXELFORMAT_RGBA8888,
+                                            SDL_TEXTUREACCESS_STREAMING,
+                                            CANVAS_MAX_WIDTH,
+                                            CANVAS_MAX_HEIGHT);
+    const int canvas_w_px = CANVAS_MAX_WIDTH;
+
+    SDL_SetTextureScaleMode(canvas, SDL_SCALEMODE_NEAREST);
+
     while (is_running) {
         const Uint64 now = SDL_GetPerformanceCounter();
 
         calculate_render_output_boundaries(renderer, &out);
         calculate_top_navigation_bar_boundaries(&out, &top_navigation_bar);
         calculate_left_navigation_bar_boundaries(&out, &top_navigation_bar, gap, &left_navigation_bar);
-        calculate_canvas_boundaries(&out, &left_navigation_bar, gap, &canvas);
+        calculate_canvas_boundaries(&out, &left_navigation_bar, gap, &canvas_rect);
         calculate_picked_color_boundaries(&left_navigation_bar, &picked_color_rect);
         calculate_palette_boundaries(&left_navigation_bar, &picked_color_rect, gap, &color_palette_rect);
 
@@ -205,20 +216,53 @@ static void iterate(SDL_Renderer *renderer) {
                         break;
                     }
 
-                    if (!is_point_intersects_rect(&mouse_pos, &color_palette_rect)) {
-                        break;
-                    }
-
-                    int i;
-                    for (i = 0; i < palette_length; ++i) {
-                        if (is_point_intersects_rect(&mouse_pos, &palette_color_rects[i])) {
-                            picked_color = palette[i];
-                            break;
+                    if (is_point_intersects_rect(&mouse_pos, &color_palette_rect)) {
+                        int i;
+                        for (i = 0; i < palette_length; ++i) {
+                            if (is_point_intersects_rect(&mouse_pos, &palette_color_rects[i])) {
+                                picked_color = palette[i];
+                                break;
+                            }
                         }
                     }
                 default:
                     break;
             }
+        }
+
+        mouse_button_flags = SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
+        if (mouse_button_flags & SDL_BUTTON_LEFT && is_point_intersects_rect(&mouse_pos, &canvas_rect)) {
+            SDL_Log("Mouse x: %f, y: %f", mouse_pos.x, mouse_pos.y);
+
+            // Calculate mouse position relative to the canvas
+            const SDL_FPoint relative_pos = {.x = mouse_pos.x - canvas_rect.x, .y = mouse_pos.y - canvas_rect.y};
+            SDL_Log("Mouse relative x: %f, y: %f", relative_pos.x, relative_pos.y);
+
+            // TODO: Move up and enable mutation by loading from a file
+            const float square_size = canvas_rect.w / (float) canvas_w_px;
+            SDL_Log("Square size: %f", square_size);
+
+            const int col = (int) (relative_pos.x / square_size);
+            const int row = (int) (relative_pos.y / square_size);
+            SDL_Log("Square x: %d, y: %d", col, row);
+
+            const int index = col + row * canvas_w_px;
+            SDL_Log("Square index: %d", index);
+
+            // TODO: Do on manual color update only
+            const uint32_t color_hex = picked_color.r << 24 |
+                                       picked_color.g << 16 |
+                                       picked_color.b << 8 |
+                                       picked_color.a;
+
+            uint32_t *pixels;
+            int pitch;
+            SDL_LockTexture(canvas, NULL, (void **) &pixels, &pitch);
+
+            pixels[index] = color_hex;
+
+            SDL_UpdateTexture(canvas, NULL, pixels, pitch);
+            SDL_UnlockTexture(canvas);
         }
 
         SDL_SetRenderDrawColor(renderer,
@@ -244,13 +288,19 @@ static void iterate(SDL_Renderer *renderer) {
         SDL_SetRenderDrawColor(renderer, green.r, green.g, green.b, green.a);
         SDL_RenderRect(renderer, &left_navigation_bar);
 
+        SDL_FRect canvas_texture_rect = canvas_rect;
+        canvas_texture_rect.h = canvas_texture_rect.w;
+        SDL_RenderTexture(renderer, canvas, NULL, &canvas_texture_rect);
+
         SDL_SetRenderDrawColor(renderer, blue.r, blue.g, blue.b, blue.a);
-        SDL_RenderRect(renderer, &canvas);
+        SDL_RenderRect(renderer, &canvas_rect);
 
         SDL_RenderPresent(renderer);
 
         display_frames_per_second(window, now);
     }
+
+    SDL_DestroyTexture(canvas);
 }
 
 static void destroy_window_and_renderer(SDL_Window *window, SDL_Renderer *renderer) {
