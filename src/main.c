@@ -32,6 +32,11 @@ static int create_window_and_renderer(SDL_Window **window, SDL_Renderer **render
         return SDL_APP_FAILURE;
     }
 
+    if (!SDL_SetRenderVSync(*renderer, 1)) {
+        SDL_Log("Failed to enable VSync: %s", SDL_GetError());
+        return SDL_APP_FAILURE;
+    }
+
     return SDL_APP_CONTINUE;
 }
 
@@ -189,8 +194,8 @@ static void iterate(SDL_Renderer *renderer) {
                         break;
                     }
 
-                    int i = 0;
-                    for (; i < palette_length; ++i) {
+                    int i;
+                    for (i = 0; i < palette_length; ++i) {
                         if (is_point_intersects_rect(&mouse_pos, &palette_color_rects[i])) {
                             picked_color = palette[i];
                             break;
