@@ -33,6 +33,38 @@ static bool is_point_intersects_rect(const SDL_FPoint *const point, const SDL_FR
            point->y <= rect->y + rect->h;
 }
 
+static void render_color_palette(SDL_Renderer *const renderer,
+                                 const SDL_FRect *const boundaries,
+                                 const int colors_length,
+                                 const int colors_per_row,
+                                 const SDL_Color *const colors,
+                                 SDL_FRect *const rects) {
+    const float size = boundaries->w / (float) colors_per_row;
+
+    SDL_FRect palette_box;
+    palette_box.x = boundaries->x;
+    palette_box.y = boundaries->y;
+    palette_box.w = size;
+    palette_box.h = size;
+
+    int i = 0;
+    for (; i < colors_length; ++i) {
+        SDL_FRect *box = &rects[i];
+        const SDL_Color color = colors[i];
+
+        SDL_Point fac;
+        fac.x = i % colors_per_row;
+        fac.y = i / colors_per_row;
+
+        *box = palette_box;
+        box->x += box->w * (float) fac.x;
+        box->y += box->h * (float) fac.y;
+
+        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+        SDL_RenderFillRect(renderer, box);
+    }
+}
+
 static void destroy_window_and_renderer(SDL_Window *window, SDL_Renderer *renderer) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -58,6 +90,29 @@ int main(void) {
     if (status != SDL_APP_CONTINUE) {
         return status;
     }
+
+    const SDL_Color white = {0xFF, 0xFF, 0xFF, 0xFF};
+    const SDL_Color black = {0, 0, 0, 0xFF};
+    const SDL_Color red = {0xFF, 0, 0, 0xFF};
+    const SDL_Color green = {0, 0xFF, 0, 0xFF};
+    const SDL_Color blue = {0, 0, 0xFF, 0xFF};
+    const SDL_Color yellow = {0xFF, 0xFF, 0x00, 0xFF};
+    const SDL_Color magenta = {0xFF, 0x00, 0xFF, 0xFF};
+    const SDL_Color cyan = {0x00, 0xFF, 0xFF, 0xFF};
+
+    SDL_Color picked_color = white;
+
+    const int palette_length = 8;
+    SDL_Color palette[] = {
+        red,
+        green,
+        blue,
+        yellow,
+        magenta,
+        cyan,
+        white,
+        black,
+    };
 
     while (is_running) {
         while (SDL_PollEvent(&event)) {
@@ -112,61 +167,29 @@ int main(void) {
         picked_color_box.w = left_nav.w;
         picked_color_box.h = left_nav.h * 0.2f;
 
-        const SDL_Color white = {0xFF, 0xFF, 0xFF, 0xFF};
-        const SDL_Color black = {0, 0, 0, 0xFF};
-        const SDL_Color red = {0xFF, 0, 0, 0xFF};
-        const SDL_Color green = {0, 0xFF, 0, 0xFF};
-        const SDL_Color blue = {0, 0, 0xFF, 0xFF};
-        const SDL_Color yellow = {0xFF, 0xFF, 0x00, 0xFF};
-        const SDL_Color magenta = {0xFF, 0x00, 0xFF, 0xFF};
-        const SDL_Color cyan = {0x00, 0xFF, 0xFF, 0xFF};
-
-        SDL_Color picked_color = white;
-
-        const int palette_length = 8;
-        SDL_Color palette[] = {
-            red,
-            green,
-            blue,
-            yellow,
-            magenta,
-            cyan,
-            white,
-            black,
-        };
-
-        SDL_SetRenderDrawColor(renderer, white.r >> 3, white.g >> 3, white.b >> 3, white.a);
+        const float gray_color_fac = 0.2f;
+        SDL_SetRenderDrawColor(renderer,
+                               (int) ((float) white.r * gray_color_fac),
+                               (int) ((float) white.g * gray_color_fac),
+                               (int) ((float) white.b * gray_color_fac),
+                               white.a);
         SDL_RenderClear(renderer);
 
-        SDL_FRect palette_boxes[palette_length];
+        SDL_FRect palette_rect;
+        palette_rect.x = left_nav.x;
+        palette_rect.y = picked_color_box.y + picked_color_box.h + gap;
+        palette_rect.w = left_nav.w;
+        palette_rect.h = left_nav.h - picked_color_box.h - gap;
 
-        {
-            const int palette_boxes_per_row = 2;
-            const float palette_box_size = left_nav.w / (float) palette_boxes_per_row;
+        SDL_FRect palette_color_rects[palette_length];
 
-            SDL_FRect palette_box;
-            palette_box.x = left_nav.x;
-            palette_box.y = picked_color_box.y + picked_color_box.h + gap;
-            palette_box.w = palette_box_size;
-            palette_box.h = palette_box_size;
-
-            int i = 0;
-            for (; i < palette_length; ++i) {
-                SDL_FRect *box = &palette_boxes[i];
-                SDL_Color color = palette[i];
-
-                SDL_Point fac;
-                fac.x = i % palette_boxes_per_row;
-                fac.y = i / palette_boxes_per_row;
-
-                *box = palette_box;
-                box->x += box->w * (float) fac.x;
-                box->y += box->h * (float) fac.y;
-
-                SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-                SDL_RenderFillRect(renderer, box);
-            }
-        }
+        const int palette_colors_per_row = 2;
+        render_color_palette(renderer,
+                             &palette_rect,
+                             palette_length,
+                             palette_colors_per_row,
+                             palette,
+                             palette_color_rects);
 
         SDL_SetRenderDrawColor(renderer, red.r, red.g, red.b, red.a);
         SDL_RenderRect(renderer, &top_nav);
