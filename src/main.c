@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <SDL3/SDL.h>
 
@@ -147,6 +148,7 @@ static void render_color_palette(SDL_Renderer *const renderer,
 }
 
 static void iterate(SDL_Renderer *renderer) {
+    SDL_Window *window = SDL_GetRenderWindow(renderer);
     SDL_Event event;
     int is_running = true;
     const float gray_color_fac = 0.2f;
@@ -171,6 +173,8 @@ static void iterate(SDL_Renderer *renderer) {
     SDL_Color picked_color = white;
 
     while (is_running) {
+        const Uint64 now = SDL_GetPerformanceCounter();
+
         calculate_render_output_boundaries(renderer, &out);
         calculate_top_navigation_bar_boundaries(&out, &top_navigation_bar);
         calculate_left_navigation_bar_boundaries(&out, &top_navigation_bar, gap, &left_navigation_bar);
@@ -233,6 +237,15 @@ static void iterate(SDL_Renderer *renderer) {
         SDL_RenderRect(renderer, &canvas);
 
         SDL_RenderPresent(renderer);
+
+        const float elapsed = (float) (SDL_GetPerformanceCounter() - now) /
+                              (float) SDL_GetPerformanceFrequency() * 1000.0f;
+        const float fps = 1000.0f / elapsed;
+
+        char *title;
+        SDL_asprintf(&title, "Pixel Draw | FPS: %d", (int) fps);
+        SDL_SetWindowTitle(window, title);
+        free(title);
     }
 }
 
