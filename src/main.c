@@ -42,6 +42,73 @@ static bool is_point_intersects_rect(const SDL_FPoint *const point, const SDL_FR
            point->y <= rect->y + rect->h;
 }
 
+static void calculate_render_output_boundaries(SDL_Renderer *renderer, SDL_Rect *const dest) {
+    dest->x = 0;
+    dest->y = 0;
+
+    SDL_GetCurrentRenderOutputSize(renderer, &dest->w, &dest->h);
+}
+
+static void calculate_top_navigation_bar_boundaries(const SDL_Rect *const out, SDL_FRect *const dest) {
+    const float min_h = 40.0f;
+    const float max_h = 50.0f;
+    const float h_scaling_fac = 0.01f;
+
+    dest->x = 0;
+    dest->y = 0;
+    dest->w = (float) out->w;
+    dest->h = min_h + (float) out->h * h_scaling_fac;
+    if (dest->h > max_h) {
+        dest->h = max_h;
+    }
+}
+
+static void calculate_left_navigation_bar_boundaries(const SDL_Rect *const out,
+                                                     const SDL_FRect *const top_navigation_bar,
+                                                     const float gap,
+                                                     SDL_FRect *const dest) {
+    const float min_w = 60.0f;
+    const float max_w = 160.0f;
+    const float w_scaling_fac = 0.08f;
+
+    dest->x = 0;
+    dest->y = top_navigation_bar->h + gap;
+    dest->h = (float) out->h - dest->y - gap;
+    dest->w = min_w + (float) out->w * w_scaling_fac;
+    if (dest->w > max_w) {
+        dest->w = max_w;
+    }
+}
+
+static void calculate_canvas_boundaries(const SDL_Rect *const out,
+                                        const SDL_FRect *const left_navigation_bar,
+                                        const float gap,
+                                        SDL_FRect *const dest) {
+    dest->x = left_navigation_bar->x + left_navigation_bar->w + gap;
+    dest->y = left_navigation_bar->y;
+    dest->w = (float) out->w - dest->x - gap;
+    dest->h = (float) out->h - dest->y - gap;
+}
+
+static void calculate_picked_color_boundaries(const SDL_FRect *const left_navigation_bar, SDL_FRect *const dest) {
+    const float h_scaling_fac = 0.2f;
+
+    dest->x = left_navigation_bar->x;
+    dest->y = left_navigation_bar->y;
+    dest->w = left_navigation_bar->w;
+    dest->h = left_navigation_bar->h * h_scaling_fac;
+}
+
+static void calculate_palette_boundaries(const SDL_FRect *const left_navigation_bar,
+                                         const SDL_FRect *const picked_color_rect,
+                                         const float gap,
+                                         SDL_FRect *dest) {
+    dest->x = left_navigation_bar->x;
+    dest->y = picked_color_rect->y + picked_color_rect->h + gap;
+    dest->w = left_navigation_bar->w;
+    dest->h = left_navigation_bar->h - picked_color_rect->h - gap;
+}
+
 static void render_color_palette(SDL_Renderer *const renderer,
                                  const SDL_FRect *const boundaries,
                                  const int colors_length,
@@ -86,28 +153,15 @@ static void iterate(SDL_Window *window, SDL_Renderer *renderer) {
 
     const float gap = 4.0f;
 
-    SDL_FRect top_nav;
-    const float top_nav_min_h = 40.0f;
-    const float top_nav_max_h = 50.0f;
-    const float top_nav_h_scaling_fac = 0.01f;
-    top_nav.x = 0;
-    top_nav.y = 0;
-
-    SDL_FRect left_nav;
-    const float left_nav_min_w = 60.0f;
-    const float left_nav_max_w = 160.0f;
-    const float left_nav_w_scaling_fac = 0.08f;
-    left_nav.x = 0;
-
-    SDL_FRect picked_color_rect;
+    SDL_Rect out;
+    SDL_FRect top_navigation_bar;
+    SDL_FRect left_navigation_bar;
     SDL_FRect canvas;
+    SDL_FRect picked_color_rect;
+    SDL_FRect color_palette_rect;
 
     // TODO: Enable mutation via mouse events
     const SDL_Color picked_color = white;
-
-    SDL_Rect out;
-    out.x = 0;
-    out.y = 0;
 
     while (is_running) {
         while (SDL_PollEvent(&event)) {
@@ -120,30 +174,12 @@ static void iterate(SDL_Window *window, SDL_Renderer *renderer) {
             }
         }
 
-        SDL_GetCurrentRenderOutputSize(renderer, &out.w, &out.h);
-
-        top_nav.w = (float) out.w;
-        top_nav.h = top_nav_min_h + (float) out.h * top_nav_h_scaling_fac;
-        if (top_nav.h > top_nav_max_h) {
-            top_nav.h = top_nav_max_h;
-        }
-
-        left_nav.y = top_nav.h + gap;
-        left_nav.h = (float) out.h - left_nav.y - gap;
-        left_nav.w = left_nav_min_w + (float) out.w * left_nav_w_scaling_fac;
-        if (left_nav.w > left_nav_max_w) {
-            left_nav.w = left_nav_max_w;
-        }
-
-        canvas.x = left_nav.x + left_nav.w + gap;
-        canvas.y = left_nav.y;
-        canvas.w = (float) out.w - canvas.x - gap;
-        canvas.h = (float) out.h - canvas.y - gap;
-
-        picked_color_rect.x = left_nav.x;
-        picked_color_rect.y = left_nav.y;
-        picked_color_rect.w = left_nav.w;
-        picked_color_rect.h = left_nav.h * 0.2f;
+        calculate_render_output_boundaries(renderer, &out);
+        calculate_top_navigation_bar_boundaries(&out, &top_navigation_bar);
+        calculate_left_navigation_bar_boundaries(&out, &top_navigation_bar, gap, &left_navigation_bar);
+        calculate_canvas_boundaries(&out, &left_navigation_bar, gap, &canvas);
+        calculate_picked_color_boundaries(&left_navigation_bar, &picked_color_rect);
+        calculate_palette_boundaries(&left_navigation_bar, &picked_color_rect, gap, &color_palette_rect);
 
         SDL_SetRenderDrawColor(renderer,
                                (int) ((float) white.r * gray_color_fac),
@@ -151,12 +187,6 @@ static void iterate(SDL_Window *window, SDL_Renderer *renderer) {
                                (int) ((float) white.b * gray_color_fac),
                                white.a);
         SDL_RenderClear(renderer);
-
-        SDL_FRect color_palette_rect;
-        color_palette_rect.x = left_nav.x;
-        color_palette_rect.y = picked_color_rect.y + picked_color_rect.h + gap;
-        color_palette_rect.w = left_nav.w;
-        color_palette_rect.h = left_nav.h - picked_color_rect.h - gap;
 
         render_color_palette(renderer,
                              &color_palette_rect,
@@ -166,13 +196,17 @@ static void iterate(SDL_Window *window, SDL_Renderer *renderer) {
                              palette_color_rects);
 
         SDL_SetRenderDrawColor(renderer, red.r, red.g, red.b, red.a);
-        SDL_RenderRect(renderer, &top_nav);
+        SDL_RenderRect(renderer, &top_navigation_bar);
+
         SDL_SetRenderDrawColor(renderer, picked_color.r, picked_color.g, picked_color.b, picked_color.a);
         SDL_RenderFillRect(renderer, &picked_color_rect);
+
         SDL_SetRenderDrawColor(renderer, green.r, green.g, green.b, green.a);
-        SDL_RenderRect(renderer, &left_nav);
+        SDL_RenderRect(renderer, &left_navigation_bar);
+
         SDL_SetRenderDrawColor(renderer, blue.r, blue.g, blue.b, blue.a);
         SDL_RenderRect(renderer, &canvas);
+
         SDL_RenderPresent(renderer);
     }
 }
