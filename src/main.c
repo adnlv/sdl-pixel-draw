@@ -160,8 +160,10 @@ static void iterate(SDL_Window *window, SDL_Renderer *renderer) {
     SDL_FRect picked_color_rect;
     SDL_FRect color_palette_rect;
 
-    // TODO: Enable mutation via mouse events
-    const SDL_Color picked_color = white;
+    SDL_FPoint mouse_pos;
+    SDL_MouseButtonFlags mouse_button_flags;
+
+    SDL_Color picked_color = white;
 
     while (is_running) {
         calculate_render_output_boundaries(renderer, &out);
@@ -172,10 +174,29 @@ static void iterate(SDL_Window *window, SDL_Renderer *renderer) {
         calculate_palette_boundaries(&left_navigation_bar, &picked_color_rect, gap, &color_palette_rect);
 
         while (SDL_PollEvent(&event)) {
+            mouse_button_flags = SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
+
             switch (event.type) {
                 case SDL_EVENT_QUIT:
                     is_running = false;
                     break;
+                case SDL_EVENT_MOUSE_BUTTON_DOWN:
+                    if (mouse_button_flags != SDL_BUTTON_LEFT) {
+                        break;
+                    }
+
+                    if (!is_point_intersects_rect(&mouse_pos, &color_palette_rect)) {
+                        break;
+                    }
+                    int i = 0;
+                    for (; i < palette_length; ++i) {
+                        const SDL_FRect *rect = &palette_color_rects[i];
+                        if (!is_point_intersects_rect(&mouse_pos, rect)) {
+                            continue;
+                        }
+
+                        picked_color = palette[i];
+                    }
                 default:
                     break;
             }
