@@ -188,14 +188,13 @@ static void iterate(SDL_Renderer *renderer) {
                     if (!is_point_intersects_rect(&mouse_pos, &color_palette_rect)) {
                         break;
                     }
+
                     int i = 0;
                     for (; i < palette_length; ++i) {
-                        const SDL_FRect *rect = &palette_color_rects[i];
-                        if (!is_point_intersects_rect(&mouse_pos, rect)) {
-                            continue;
+                        if (is_point_intersects_rect(&mouse_pos, &palette_color_rects[i])) {
+                            picked_color = palette[i];
+                            break;
                         }
-
-                        picked_color = palette[i];
                     }
                 default:
                     break;
