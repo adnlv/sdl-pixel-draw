@@ -141,7 +141,7 @@ static void render_color_palette(SDL_Renderer *const renderer,
     }
 }
 
-static void iterate(SDL_Window *window, SDL_Renderer *renderer) {
+static void iterate(SDL_Renderer *renderer) {
     SDL_Event event;
     int is_running = true;
     const float gray_color_fac = 0.2f;
@@ -256,7 +256,7 @@ int main(void) {
         return status;
     }
 
-    iterate(window, renderer);
+    iterate(renderer);
 
     destroy_window_and_renderer(window, renderer);
     quit();
