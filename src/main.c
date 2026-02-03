@@ -147,6 +147,17 @@ static void render_color_palette(SDL_Renderer *const renderer,
     }
 }
 
+static void display_frames_per_second(SDL_Window *const window, const uint64_t start) {
+    const float elapsed = (float) (SDL_GetPerformanceCounter() - start) /
+                          (float) SDL_GetPerformanceFrequency() * 1000.0f;
+    const float fps = 1000.0f / elapsed;
+
+    char *title;
+    SDL_asprintf(&title, "Pixel Draw | FPS: %d", (int) fps);
+    SDL_SetWindowTitle(window, title);
+    free(title);
+}
+
 static void iterate(SDL_Renderer *renderer) {
     SDL_Window *window = SDL_GetRenderWindow(renderer);
     SDL_Event event;
@@ -238,14 +249,7 @@ static void iterate(SDL_Renderer *renderer) {
 
         SDL_RenderPresent(renderer);
 
-        const float elapsed = (float) (SDL_GetPerformanceCounter() - now) /
-                              (float) SDL_GetPerformanceFrequency() * 1000.0f;
-        const float fps = 1000.0f / elapsed;
-
-        char *title;
-        SDL_asprintf(&title, "Pixel Draw | FPS: %d", (int) fps);
-        SDL_SetWindowTitle(window, title);
-        free(title);
+        display_frames_per_second(window, now);
     }
 }
 
