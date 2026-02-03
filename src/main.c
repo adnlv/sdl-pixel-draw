@@ -160,6 +160,13 @@ static void display_frames_per_second(SDL_Window *const window, const uint64_t s
     free(title);
 }
 
+static uint32_t convert_rgba_to_hex(const SDL_Color *const color) {
+    return color->r << 24 |
+           color->g << 16 |
+           color->b << 8 |
+           color->a;
+}
+
 static void iterate(SDL_Renderer *renderer) {
     SDL_Window *window = SDL_GetRenderWindow(renderer);
     SDL_Event event;
@@ -184,6 +191,7 @@ static void iterate(SDL_Renderer *renderer) {
     SDL_MouseButtonFlags mouse_button_flags;
 
     SDL_Color picked_color = white;
+    uint32_t picked_color_hex = convert_rgba_to_hex(&picked_color);
 
     SDL_Texture *canvas = SDL_CreateTexture(renderer,
                                             SDL_PIXELFORMAT_RGBA8888,
@@ -221,6 +229,7 @@ static void iterate(SDL_Renderer *renderer) {
                         for (i = 0; i < palette_length; ++i) {
                             if (is_point_intersects_rect(&mouse_pos, &palette_color_rects[i])) {
                                 picked_color = palette[i];
+                                picked_color_hex = convert_rgba_to_hex(&picked_color);
                                 break;
                             }
                         }
@@ -232,34 +241,19 @@ static void iterate(SDL_Renderer *renderer) {
 
         mouse_button_flags = SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
         if (mouse_button_flags & SDL_BUTTON_LEFT && is_point_intersects_rect(&mouse_pos, &canvas_rect)) {
-            SDL_Log("Mouse x: %f, y: %f", mouse_pos.x, mouse_pos.y);
-
-            // Calculate mouse position relative to the canvas
-            const SDL_FPoint relative_pos = {.x = mouse_pos.x - canvas_rect.x, .y = mouse_pos.y - canvas_rect.y};
-            SDL_Log("Mouse relative x: %f, y: %f", relative_pos.x, relative_pos.y);
-
             // TODO: Move up and enable mutation by loading from a file
             const float square_size = canvas_rect.w / (float) canvas_w_px;
-            SDL_Log("Square size: %f", square_size);
 
+            const SDL_FPoint relative_pos = {.x = mouse_pos.x - canvas_rect.x, .y = mouse_pos.y - canvas_rect.y};
             const int col = (int) (relative_pos.x / square_size);
             const int row = (int) (relative_pos.y / square_size);
-            SDL_Log("Square x: %d, y: %d", col, row);
-
             const int index = col + row * canvas_w_px;
-            SDL_Log("Square index: %d", index);
-
-            // TODO: Do on manual color update only
-            const uint32_t color_hex = picked_color.r << 24 |
-                                       picked_color.g << 16 |
-                                       picked_color.b << 8 |
-                                       picked_color.a;
 
             uint32_t *pixels;
             int pitch;
             SDL_LockTexture(canvas, NULL, (void **) &pixels, &pitch);
 
-            pixels[index] = color_hex;
+            pixels[index] = picked_color_hex;
 
             SDL_UpdateTexture(canvas, NULL, pixels, pitch);
             SDL_UnlockTexture(canvas);
