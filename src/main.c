@@ -130,65 +130,37 @@ int main(void) {
         palette[4] = white;
         palette[5] = black;
 
-        const float palette_color_box_scale_fac = 0.5f;
-        const float palette_color_box_size = left_nav.w * palette_color_box_scale_fac;
-
-        SDL_FRect palette_color_box;
-        palette_color_box.w = palette_color_box_size;
-        palette_color_box.h = palette_color_box_size;
-
         SDL_SetRenderDrawColor(renderer, white.r >> 3, white.g >> 3, white.b >> 3, white.a);
         SDL_RenderClear(renderer);
 
         SDL_FRect palette_boxes[palette_length];
 
-        SDL_FRect palette_box_1;
-        palette_box_1.x = left_nav.x;
-        palette_box_1.y = picked_color_box.y + picked_color_box.h + gap;
-        palette_box_1.w = palette_color_box_size;
-        palette_box_1.h = palette_box_1.w;
+        {
+            const int palette_boxes_per_row = 2;
+            const float palette_box_size = left_nav.w / (float) palette_boxes_per_row;
 
-        SDL_FRect palette_box_2;
-        palette_box_2.x = palette_box_1.x + palette_box_1.w;
-        palette_box_2.y = palette_box_1.y;
-        palette_box_2.w = palette_color_box_size;
-        palette_box_2.h = palette_box_2.w;
+            SDL_FRect palette_box;
+            palette_box.x = left_nav.x;
+            palette_box.y = picked_color_box.y + picked_color_box.h + gap;
+            palette_box.w = palette_box_size;
+            palette_box.h = palette_box_size;
 
-        SDL_FRect palette_box_3;
-        palette_box_3.x = left_nav.x;
-        palette_box_3.y = palette_box_1.y + palette_box_1.h;
-        palette_box_3.w = palette_color_box_size;
-        palette_box_3.h = palette_box_3.w;
+            int i = 0;
+            for (; i < palette_length; ++i) {
+                SDL_FRect *box = &palette_boxes[i];
+                SDL_Color color = palette[i];
 
-        SDL_FRect palette_box_4;
-        palette_box_4.x = palette_box_3.x + palette_box_3.w;
-        palette_box_4.y = palette_box_3.y;
-        palette_box_4.w = palette_color_box_size;
-        palette_box_4.h = palette_box_4.w;
+                SDL_Point fac;
+                fac.x = i % palette_boxes_per_row;
+                fac.y = i / palette_boxes_per_row;
 
-        SDL_FRect palette_box_5;
-        palette_box_5.x = left_nav.x;
-        palette_box_5.y = palette_box_3.y + palette_box_3.h;
-        palette_box_5.w = palette_color_box_size;
-        palette_box_5.h = palette_box_4.w;
+                *box = palette_box;
+                box->x += box->w * (float) fac.x;
+                box->y += box->h * (float) fac.y;
 
-        SDL_FRect palette_box_6;
-        palette_box_6.x = palette_box_5.x + palette_box_5.w;
-        palette_box_6.y = palette_box_5.y;
-        palette_box_6.w = palette_color_box_size;
-        palette_box_6.h = palette_box_4.w;
-
-        palette_boxes[0] = palette_box_1;
-        palette_boxes[1] = palette_box_2;
-        palette_boxes[2] = palette_box_3;
-        palette_boxes[3] = palette_box_4;
-        palette_boxes[4] = palette_box_5;
-        palette_boxes[5] = palette_box_6;
-
-        int i = 0;
-        for (; i < palette_length; ++i) {
-            SDL_SetRenderDrawColor(renderer, palette[i].r, palette[i].g, palette[i].b, palette[i].a);
-            SDL_RenderFillRect(renderer, &palette_boxes[i]);
+                SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+                SDL_RenderFillRect(renderer, box);
+            }
         }
 
         SDL_SetRenderDrawColor(renderer, red.r, red.g, red.b, red.a);
