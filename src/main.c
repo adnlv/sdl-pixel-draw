@@ -106,32 +106,95 @@ int main(void) {
         draw_box.w = (float) out_width - draw_box.x - gap;
         draw_box.h = (float) out_height - draw_box.y - gap;
 
+        SDL_FRect picked_color_box;
+        picked_color_box.x = left_nav.x;
+        picked_color_box.y = left_nav.y;
+        picked_color_box.w = left_nav.w;
+        picked_color_box.h = left_nav.h * 0.2f;
+
         const SDL_Color white = {0xFF, 0xFF, 0xFF, 0xFF};
         const SDL_Color black = {0, 0, 0, 0xFF};
         const SDL_Color red = {0xFF, 0, 0, 0xFF};
         const SDL_Color green = {0, 0xFF, 0, 0xFF};
         const SDL_Color blue = {0, 0, 0xFF, 0xFF};
+        const SDL_Color yellow = {0xFF, 0xFF, 0x00, 0xFF};
 
-        SDL_SetRenderDrawColor(renderer, black.r, black.g, black.b, black.a);
+        SDL_Color picked_color = white;
+
+        const int palette_length = 6;
+        SDL_Color palette[palette_length];
+        palette[0] = red;
+        palette[1] = green;
+        palette[2] = blue;
+        palette[3] = yellow;
+        palette[4] = white;
+        palette[5] = black;
+
+        const float palette_color_box_scale_fac = 0.5f;
+        const float palette_color_box_size = left_nav.w * palette_color_box_scale_fac;
+
+        SDL_FRect palette_color_box;
+        palette_color_box.w = palette_color_box_size;
+        palette_color_box.h = palette_color_box_size;
+
+        SDL_SetRenderDrawColor(renderer, white.r >> 3, white.g >> 3, white.b >> 3, white.a);
         SDL_RenderClear(renderer);
 
-        SDL_SetRenderDrawColor(renderer, white.r >> 2, white.g >> 2, white.b >> 2, white.a);
+        SDL_FRect palette_boxes[palette_length];
 
-        SDL_FPoint mouse_pos;
-        const SDL_MouseButtonFlags mouse_flags = SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
+        SDL_FRect palette_box_1;
+        palette_box_1.x = left_nav.x;
+        palette_box_1.y = picked_color_box.y + picked_color_box.h + gap;
+        palette_box_1.w = palette_color_box_size;
+        palette_box_1.h = palette_box_1.w;
 
-        if (mouse_flags & SDL_BUTTON_LEFT) {
-            if (is_point_intersects_rect(&mouse_pos, &top_nav)) {
-                SDL_RenderFillRect(renderer, &top_nav);
-            } else if (is_point_intersects_rect(&mouse_pos, &left_nav)) {
-                SDL_RenderFillRect(renderer, &left_nav);
-            } else if (is_point_intersects_rect(&mouse_pos, &draw_box)) {
-                SDL_RenderFillRect(renderer, &draw_box);
-            }
+        SDL_FRect palette_box_2;
+        palette_box_2.x = palette_box_1.x + palette_box_1.w;
+        palette_box_2.y = palette_box_1.y;
+        palette_box_2.w = palette_color_box_size;
+        palette_box_2.h = palette_box_2.w;
+
+        SDL_FRect palette_box_3;
+        palette_box_3.x = left_nav.x;
+        palette_box_3.y = palette_box_1.y + palette_box_1.h;
+        palette_box_3.w = palette_color_box_size;
+        palette_box_3.h = palette_box_3.w;
+
+        SDL_FRect palette_box_4;
+        palette_box_4.x = palette_box_3.x + palette_box_3.w;
+        palette_box_4.y = palette_box_3.y;
+        palette_box_4.w = palette_color_box_size;
+        palette_box_4.h = palette_box_4.w;
+
+        SDL_FRect palette_box_5;
+        palette_box_5.x = left_nav.x;
+        palette_box_5.y = palette_box_3.y + palette_box_3.h;
+        palette_box_5.w = palette_color_box_size;
+        palette_box_5.h = palette_box_4.w;
+
+        SDL_FRect palette_box_6;
+        palette_box_6.x = palette_box_5.x + palette_box_5.w;
+        palette_box_6.y = palette_box_5.y;
+        palette_box_6.w = palette_color_box_size;
+        palette_box_6.h = palette_box_4.w;
+
+        palette_boxes[0] = palette_box_1;
+        palette_boxes[1] = palette_box_2;
+        palette_boxes[2] = palette_box_3;
+        palette_boxes[3] = palette_box_4;
+        palette_boxes[4] = palette_box_5;
+        palette_boxes[5] = palette_box_6;
+
+        int i = 0;
+        for (; i < palette_length; ++i) {
+            SDL_SetRenderDrawColor(renderer, palette[i].r, palette[i].g, palette[i].b, palette[i].a);
+            SDL_RenderFillRect(renderer, &palette_boxes[i]);
         }
 
         SDL_SetRenderDrawColor(renderer, red.r, red.g, red.b, red.a);
         SDL_RenderRect(renderer, &top_nav);
+        SDL_SetRenderDrawColor(renderer, picked_color.r, picked_color.g, picked_color.b, picked_color.a);
+        SDL_RenderFillRect(renderer, &picked_color_box);
         SDL_SetRenderDrawColor(renderer, green.r, green.g, green.b, green.a);
         SDL_RenderRect(renderer, &left_nav);
         SDL_SetRenderDrawColor(renderer, blue.r, blue.g, blue.b, blue.a);
