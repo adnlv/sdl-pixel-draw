@@ -8,7 +8,7 @@ typedef struct {
     uint8_t g;
     uint8_t b;
     uint8_t a;
-} pixel_t;
+} rgba_t;
 
 #define CANVAS_MAX_WIDTH 0xFF
 #define CANVAS_MAX_HEIGHT 0xFF

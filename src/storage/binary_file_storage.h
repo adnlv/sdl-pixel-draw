@@ -9,12 +9,12 @@ FILE *open_binary_file(const char *filename);
 
 int close_binary_file(FILE *file);
 
-uint16_t save_pixels_as_binary_file(const pixel_t *pixels,
+uint16_t save_pixels_as_binary_file(const rgba_t *pixels,
                                     uint8_t width,
                                     uint8_t height,
                                     FILE *file);
 
-uint16_t read_pixels_from_binary_file(pixel_t *pixels,
+uint16_t read_pixels_from_binary_file(rgba_t *pixels,
                                       uint8_t *width,
                                       uint8_t *height,
                                       FILE *file);
