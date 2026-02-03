@@ -118,17 +118,22 @@ int main(void) {
         const SDL_Color green = {0, 0xFF, 0, 0xFF};
         const SDL_Color blue = {0, 0, 0xFF, 0xFF};
         const SDL_Color yellow = {0xFF, 0xFF, 0x00, 0xFF};
+        const SDL_Color magenta = {0xFF, 0x00, 0xFF, 0xFF};
+        const SDL_Color cyan = {0x00, 0xFF, 0xFF, 0xFF};
 
         SDL_Color picked_color = white;
 
-        const int palette_length = 6;
-        SDL_Color palette[palette_length];
-        palette[0] = red;
-        palette[1] = green;
-        palette[2] = blue;
-        palette[3] = yellow;
-        palette[4] = white;
-        palette[5] = black;
+        const int palette_length = 8;
+        SDL_Color palette[] = {
+            red,
+            green,
+            blue,
+            yellow,
+            magenta,
+            cyan,
+            white,
+            black,
+        };
 
         SDL_SetRenderDrawColor(renderer, white.r >> 3, white.g >> 3, white.b >> 3, white.a);
         SDL_RenderClear(renderer);
