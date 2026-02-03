@@ -164,6 +164,13 @@ static void iterate(SDL_Window *window, SDL_Renderer *renderer) {
     const SDL_Color picked_color = white;
 
     while (is_running) {
+        calculate_render_output_boundaries(renderer, &out);
+        calculate_top_navigation_bar_boundaries(&out, &top_navigation_bar);
+        calculate_left_navigation_bar_boundaries(&out, &top_navigation_bar, gap, &left_navigation_bar);
+        calculate_canvas_boundaries(&out, &left_navigation_bar, gap, &canvas);
+        calculate_picked_color_boundaries(&left_navigation_bar, &picked_color_rect);
+        calculate_palette_boundaries(&left_navigation_bar, &picked_color_rect, gap, &color_palette_rect);
+
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
                 case SDL_EVENT_QUIT:
@@ -173,13 +180,6 @@ static void iterate(SDL_Window *window, SDL_Renderer *renderer) {
                     break;
             }
         }
-
-        calculate_render_output_boundaries(renderer, &out);
-        calculate_top_navigation_bar_boundaries(&out, &top_navigation_bar);
-        calculate_left_navigation_bar_boundaries(&out, &top_navigation_bar, gap, &left_navigation_bar);
-        calculate_canvas_boundaries(&out, &left_navigation_bar, gap, &canvas);
-        calculate_picked_color_boundaries(&left_navigation_bar, &picked_color_rect);
-        calculate_palette_boundaries(&left_navigation_bar, &picked_color_rect, gap, &color_palette_rect);
 
         SDL_SetRenderDrawColor(renderer,
                                (int) ((float) white.r * gray_color_fac),
