@@ -103,7 +103,8 @@ int main(void) {
     const int color_palette_length = 8;
     const SDL_Color color_palette[] = {red, green, blue, yellow, magenta, cyan, white, black};
 
-    SDL_Color picked_color = white;
+    // TODO: Enable mutation via mouse events
+    const SDL_Color picked_color = white;
 
     while (is_running) {
         while (SDL_PollEvent(&event)) {
@@ -116,9 +117,9 @@ int main(void) {
             }
         }
 
-        int out_width = 0;
-        int out_height = 0;
-        SDL_GetCurrentRenderOutputSize(renderer, &out_width, &out_height);
+        int out_w = 0;
+        int out_h = 0;
+        SDL_GetCurrentRenderOutputSize(renderer, &out_w, &out_h);
 
         const float gap = 4.0f;
 
@@ -128,8 +129,8 @@ int main(void) {
         const float top_nav_scaling_fac = 0.01f;
         top_nav.x = 0;
         top_nav.y = 0;
-        top_nav.w = (float) out_width;
-        top_nav.h = top_nav_min_height + (float) out_height * top_nav_scaling_fac;
+        top_nav.w = (float) out_w;
+        top_nav.h = top_nav_min_height + (float) out_h * top_nav_scaling_fac;
         if (top_nav.h > top_nav_max_height) {
             top_nav.h = top_nav_max_height;
         }
@@ -140,17 +141,17 @@ int main(void) {
         SDL_FRect left_nav;
         left_nav.x = 0;
         left_nav.y = top_nav.h + gap;
-        left_nav.w = left_nav_min_width + (float) out_width * left_nav_scaling_fac;
+        left_nav.w = left_nav_min_width + (float) out_w * left_nav_scaling_fac;
         if (left_nav.w > left_nav_max_width) {
             left_nav.w = left_nav_max_width;
         }
-        left_nav.h = (float) out_height - left_nav.y - gap;
+        left_nav.h = (float) out_h - left_nav.y - gap;
 
         SDL_FRect draw_box;
         draw_box.x = left_nav.x + left_nav.w + gap;
         draw_box.y = left_nav.y;
-        draw_box.w = (float) out_width - draw_box.x - gap;
-        draw_box.h = (float) out_height - draw_box.y - gap;
+        draw_box.w = (float) out_w - draw_box.x - gap;
+        draw_box.h = (float) out_h - draw_box.y - gap;
 
         SDL_FRect picked_color_box;
         picked_color_box.x = left_nav.x;
