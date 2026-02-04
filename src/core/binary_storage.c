@@ -1,7 +1,12 @@
 #include "binary_storage.h"
 
 FILE *open_binary_file(const char *path) {
-    return fopen(path, "wb+");
+    FILE *file = fopen(path, "r+b");
+    if (file == NULL) {
+        file = fopen(path, "w+b");
+    }
+
+    return file;
 }
 
 int close_binary_file(FILE *file) {

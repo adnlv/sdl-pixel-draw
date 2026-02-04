@@ -205,9 +205,17 @@ static void recreate_canvas_texture(SDL_Renderer *const renderer,
     SDL_SetTextureScaleMode(*canvas, SDL_SCALEMODE_NEAREST);
 }
 
+static void reopen_binary_file(FILE **file) {
+    if (*file != NULL)
+        close_binary_file(*file);
+
+    *file = open_binary_file("image.bin");
+}
+
 static void iterate(SDL_Renderer *renderer) {
     SDL_Window *window = SDL_GetRenderWindow(renderer);
-    FILE *storage = open_binary_file("image.bin");
+
+    FILE *storage = NULL;
     const save_pixels_func_t save_pixels = save_pixels_to_binary;
     const read_pixels_func_t read_pixels = read_pixels_from_binary;
 
@@ -262,10 +270,13 @@ static void iterate(SDL_Renderer *renderer) {
                         int pitch;
                         SDL_LockTexture(canvas, NULL, (void **) &pixels, &pitch);
 
+                        reopen_binary_file(&storage);
                         if (!save_pixels(storage, canvas->w, canvas->h, pixels)) {
                             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to save pixels to binary");
                             return;
                         }
+                        close_binary_file(storage);
+                        storage = NULL;
 
                         SDL_UnlockTexture(canvas);
                     } else if (event.key.key == SDLK_O) {
@@ -273,10 +284,13 @@ static void iterate(SDL_Renderer *renderer) {
                         uint8_t new_h = 0;
                         uint32_t pixels[CANVAS_MAX_WIDTH * CANVAS_MAX_HEIGHT];
 
+                        reopen_binary_file(&storage);
                         if (!read_pixels(storage, &new_w, &new_h, pixels)) {
                             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to read pixels from binary");
                             return;
                         }
+                        close_binary_file(storage);
+                        storage = NULL;
 
                         recreate_canvas_texture(renderer, &canvas, new_w, new_h);
                         fill_canvas(canvas, pixels);
@@ -359,7 +373,9 @@ static void iterate(SDL_Renderer *renderer) {
     }
 
     SDL_DestroyTexture(canvas);
-    close_binary_file(storage);
+
+    if (storage != NULL)
+        close_binary_file(storage);
 }
 
 static void destroy_window_and_renderer(SDL_Window *window, SDL_Renderer *renderer) {
