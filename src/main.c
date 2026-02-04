@@ -425,6 +425,11 @@ static void convert_rect_to_frect(const SDL_Rect* src, SDL_FRect* dest)
     dest->h = (float)src->h;
 }
 
+static uint32_t convert_rgba_to_hex(const SDL_Color* color)
+{
+    return color->r << 24 | color->g << 16 | color->b << 8 | color->a;
+}
+
 static void calculate_top_navigation_bar_dimensions(const int screen_w, const int screen_h, SDL_Rect* dest)
 {
     const int min_top_navigation_bar_h = 40;
@@ -518,7 +523,6 @@ static void fill_texture_with_color(SDL_Texture* texture, const uint32_t color_h
     SDL_UnlockTexture(texture);
 }
 
-
 static void run(SDL_Window* window, SDL_Renderer* renderer)
 {
     screen_t screen;
@@ -530,7 +534,8 @@ static void run(SDL_Window* window, SDL_Renderer* renderer)
     init_canvas(renderer, CANVAS_DEFAULT_WIDTH, CANVAS_DEFAULT_WIDTH, &canvas);
     init_storage(&storage, open_binary_file, close_binary_file, save_pixels_to_binary, read_pixels_from_binary);
 
-    fill_texture_with_color(canvas.texture, 0x000000FF);
+    const uint32_t canvas_default_color_hex = convert_rgba_to_hex(&black);
+    fill_texture_with_color(canvas.texture, canvas_default_color_hex);
 
     struct
     {
