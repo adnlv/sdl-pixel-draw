@@ -166,6 +166,32 @@ static uint32_t convert_rgba_to_hex(const SDL_Color *const color) {
            color->a;
 }
 
+static void fill_canvas_with_color(SDL_Texture *const canvas, const uint32_t color_hex) {
+    uint32_t *pixels;
+    int pitch;
+    SDL_LockTexture(canvas, NULL, (void **) &pixels, &pitch);
+
+    for (int i = 0; i < canvas->w * canvas->h; ++i) {
+        pixels[i] = color_hex;
+    }
+
+    SDL_UnlockTexture(canvas);
+}
+
+static void recreate_canvas_texture(SDL_Renderer *const renderer,
+                                    SDL_Texture **const canvas,
+                                    const uint8_t w,
+                                    const uint8_t h) {
+    if (*canvas != NULL) {
+        free(*canvas);
+    }
+
+    *canvas = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, w, h);
+    SDL_SetTextureScaleMode(*canvas, SDL_SCALEMODE_NEAREST);
+
+    fill_canvas_with_color(*canvas, convert_rgba_to_hex(&white));
+}
+
 static void iterate(SDL_Renderer *renderer) {
     SDL_Window *window = SDL_GetRenderWindow(renderer);
     SDL_Event event;
@@ -188,14 +214,10 @@ static void iterate(SDL_Renderer *renderer) {
     SDL_Color picked_color = white;
     uint32_t picked_color_hex = convert_rgba_to_hex(&picked_color);
 
-    SDL_Texture *canvas = SDL_CreateTexture(renderer,
-                                            SDL_PIXELFORMAT_RGBA8888,
-                                            SDL_TEXTUREACCESS_STREAMING,
-                                            CANVAS_MAX_WIDTH,
-                                            CANVAS_MAX_HEIGHT);
-    float canvas_square_size = 0;
+    SDL_Texture *canvas = NULL;
+    recreate_canvas_texture(renderer, &canvas, CANVAS_MAX_WIDTH, CANVAS_MAX_HEIGHT);
 
-    SDL_SetTextureScaleMode(canvas, SDL_SCALEMODE_NEAREST);
+    float canvas_square_size = 0;
 
     while (is_running) {
         const float gap = 4.0f;
