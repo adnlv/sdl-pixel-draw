@@ -577,6 +577,9 @@ static void run(SDL_Window* window, SDL_Renderer* renderer)
     const uint32_t canvas_default_color_hex = convert_rgba_to_hex(&black);
     fill_texture_with_color(canvas.texture, canvas_default_color_hex);
 
+    /* Temporary storage */
+    storage.stream = storage.open_file_stream("tmp.bin");
+
     struct
     {
         SDL_Rect rect;
@@ -653,6 +656,30 @@ static void run(SDL_Window* window, SDL_Renderer* renderer)
             if (event.type == SDL_EVENT_QUIT)
             {
                 is_running = false;
+                break;
+            }
+
+            if (event.type == SDL_EVENT_KEY_DOWN)
+            {
+                if (event.key.key == SDLK_S)
+                {
+                    FILE* saved = storage.open_file_stream("saved.bin");
+
+                    uint32_t* pixels;
+                    int pitch;
+                    SDL_LockTexture(canvas.texture, NULL, (void**)&pixels, &pitch);
+
+                    if (!storage.save_pixels(saved, canvas.texture->w, canvas.texture->h, pixels))
+                    {
+                        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to save pixels");
+                        break;
+                    }
+
+                    SDL_UnlockTexture(canvas.texture);
+
+                    storage.close_file_stream(saved);
+                }
+
                 break;
             }
 
