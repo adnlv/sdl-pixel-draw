@@ -563,6 +563,54 @@ static void draw_pixel(canvas_t* canvas, const mouse_state_t* mouse, const uint3
     SDL_UnlockTexture(canvas->texture);
 }
 
+static bool save_texture(const storage_t* storage, const char* path, SDL_Texture* texture)
+{
+    FILE* saved = storage->open_file_stream(path);
+
+    uint32_t* pixels;
+    int pitch;
+    SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch);
+
+    if (!storage->save_pixels(saved, texture->w, texture->h, pixels))
+    {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to save pixels");
+        return false;
+    }
+
+    SDL_UnlockTexture(texture);
+    storage->close_file_stream(saved);
+    return true;
+}
+
+static bool load_canvas(const storage_t* storage, const char* path, canvas_t* canvas)
+{
+    FILE* saved = storage->open_file_stream(path);
+    uint8_t saved_w = 0;
+    uint8_t saved_h = 0;
+    uint32_t saved_pixels[CANVAS_MAX_WIDTH * CANVAS_MAX_HEIGHT];
+
+    if (!storage->read_pixels(saved, &saved_w, &saved_h, saved_pixels))
+    {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to save pixels");
+        return false;
+    }
+
+    storage->close_file_stream(saved);
+
+    uint32_t* pixels;
+    int pitch;
+    SDL_LockTexture(canvas->texture, NULL, (void**)&pixels, &pitch);
+
+    for (int i = 0; i < saved_w * saved_h; ++i)
+        pixels[i] = saved_pixels[i];
+
+    SDL_UnlockTexture(canvas->texture);
+
+    canvas->grid_dimensions.w = saved_w;
+    canvas->grid_dimensions.w = saved_h;
+    return true;
+}
+
 static void run(SDL_Window* window, SDL_Renderer* renderer)
 {
     screen_t screen;
@@ -662,46 +710,9 @@ static void run(SDL_Window* window, SDL_Renderer* renderer)
             if (event.type == SDL_EVENT_KEY_DOWN)
             {
                 if (event.key.key == SDLK_S)
-                {
-                    FILE* saved = storage.open_file_stream("saved.bin");
-
-                    uint32_t* pixels;
-                    int pitch;
-                    SDL_LockTexture(canvas.texture, NULL, (void**)&pixels, &pitch);
-
-                    if (!storage.save_pixels(saved, canvas.texture->w, canvas.texture->h, pixels))
-                    {
-                        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to save pixels");
-                        break;
-                    }
-
-                    SDL_UnlockTexture(canvas.texture);
-                    storage.close_file_stream(saved);
-                }
+                    save_texture(&storage, "saved.bin", canvas.texture);
                 else if (event.key.key == SDLK_O)
-                {
-                    FILE* saved = storage.open_file_stream("saved.bin");
-                    uint8_t saved_w = 0;
-                    uint8_t saved_h = 0;
-                    uint32_t saved_pixels[CANVAS_MAX_WIDTH * CANVAS_MAX_HEIGHT];
-
-                    if (!storage.read_pixels(saved, &saved_w, &saved_h, saved_pixels))
-                    {
-                        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to save pixels");
-                        break;
-                    }
-
-                    storage.close_file_stream(saved);
-
-                    uint32_t* pixels;
-                    int pitch;
-                    SDL_LockTexture(canvas.texture, NULL, (void**)&pixels, &pitch);
-
-                    for (int i = 0; i < saved_w * saved_h; ++i)
-                        pixels[i] = saved_pixels[i];
-
-                    SDL_UnlockTexture(canvas.texture);
-                }
+                    load_canvas(&storage, "saved.bin", &canvas);
 
                 break;
             }
