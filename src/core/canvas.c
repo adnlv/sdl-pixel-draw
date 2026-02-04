@@ -12,7 +12,7 @@ void init_canvas(SDL_Renderer* renderer, const uint8_t w, const uint8_t h, canva
 {
     dest->texture = create_streaming_texture(renderer, w, h);
     dest->dimensions = (SDL_Rect){0};
-    dest->grid_dimensions = (SDL_Rect){0};
+    dest->grid_dimensions = (SDL_Rect){.w = w, .h = h};
     dest->grid_cell_size = (SDL_Point){0};
 }
 

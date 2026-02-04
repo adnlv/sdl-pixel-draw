@@ -411,10 +411,10 @@ static int create_window_and_renderer(SDL_Window** window, SDL_Renderer** render
 
 static bool is_point_in_rect(const SDL_FPoint* point, const SDL_Rect* rect)
 {
-    return point->x > (float)rect->x &&
-        point->x < (float)(rect->x + rect->w) &&
-        point->y > (float)rect->y &&
-        point->y < (float)(rect->y + rect->h);
+    return (int)point->x > rect->x &&
+        (int)point->x < rect->x + rect->w &&
+        (int)point->y > rect->y &&
+        (int)point->y < rect->y + rect->h;
 }
 
 static void convert_rect_to_frect(const SDL_Rect* src, SDL_FRect* dest)
@@ -468,6 +468,12 @@ static void calculate_canvas_dimensions(const SDL_Rect* top_navigation_bar,
     dest->y = left_navigation_bar->y;
     dest->w = top_navigation_bar->w - dest->x;
     dest->h = left_navigation_bar->h;
+
+    // Show the whole canvas no matter what
+    if (dest->w > dest->h)
+        dest->w = dest->h;
+    else
+        dest->h = dest->w;
 }
 
 static void calculate_picked_color_dimensions(const SDL_Rect* left_navigation_bar, SDL_Rect* dest)
@@ -523,6 +529,33 @@ static void fill_texture_with_color(SDL_Texture* texture, const uint32_t color_h
     SDL_UnlockTexture(texture);
 }
 
+static void draw_pixel(canvas_t* canvas, const mouse_state_t* mouse, const uint32_t color_hex)
+{
+    canvas->grid_cell_size.x = canvas->dimensions.w / canvas->grid_dimensions.w;
+    canvas->grid_cell_size.y = canvas->grid_cell_size.x;
+
+    const SDL_FRect relative_position = {
+        .x = mouse->pos.x - (float)canvas->dimensions.x,
+        .y = mouse->pos.y - (float)canvas->dimensions.y,
+    };
+
+    const SDL_Rect grid_position = {
+        .x = (int)relative_position.x / canvas->grid_cell_size.x,
+        .y = (int)relative_position.y / canvas->grid_cell_size.y,
+    };
+
+    const int grid_index = grid_position.y * canvas->grid_dimensions.w + grid_position.x;
+
+    uint32_t* pixels;
+    int pitch;
+    SDL_LockTexture(canvas->texture, NULL, (void**)&pixels, &pitch);
+
+    pixels[grid_index] = color_hex;
+
+    SDL_UpdateTexture(canvas->texture, NULL, pixels, pitch);
+    SDL_UnlockTexture(canvas->texture);
+}
+
 static void run(SDL_Window* window, SDL_Renderer* renderer)
 {
     screen_t screen;
@@ -560,8 +593,10 @@ static void run(SDL_Window* window, SDL_Renderer* renderer)
         SDL_Rect rect;
         SDL_Color color;
         const SDL_Color outline_color;
+        uint32_t hex;
     } picked_color = {
         .color = white,
+        .hex = convert_rgba_to_hex(&white),
         .outline_color = cyan
     };
 
@@ -627,6 +662,7 @@ static void run(SDL_Window* window, SDL_Renderer* renderer)
                         if (is_point_in_rect(&mouse.pos, &palette.cell_rects[i]))
                         {
                             picked_color.color = palette.cell_colors[i];
+                            picked_color.hex = convert_rgba_to_hex(&picked_color.color);
                             break;
                         }
                     }
@@ -635,6 +671,8 @@ static void run(SDL_Window* window, SDL_Renderer* renderer)
         }
 
         update_mouse_state(&mouse);
+        if (mouse.btn == SDL_BUTTON_LEFT && is_point_in_rect(&mouse.pos, &canvas.dimensions))
+            draw_pixel(&canvas, &mouse, picked_color.hex);
 
         SDL_FRect render_rect;
         SDL_Color render_color = gray;
