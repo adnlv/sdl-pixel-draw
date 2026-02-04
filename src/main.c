@@ -212,13 +212,12 @@ static void iterate(SDL_Renderer *renderer) {
         calculate_palette_boundaries(&left_navigation_bar, &picked_color_rect, gap, &color_palette_rect);
 
         while (SDL_PollEvent(&event)) {
-            mouse_button_flags = SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
-
             switch (event.type) {
                 case SDL_EVENT_QUIT:
                     is_running = false;
                     break;
                 case SDL_EVENT_MOUSE_BUTTON_DOWN:
+                    mouse_button_flags = SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
                     if (mouse_button_flags != SDL_BUTTON_LEFT) {
                         break;
                     }
