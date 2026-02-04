@@ -518,8 +518,6 @@ static void run(SDL_Window* window, SDL_Renderer* renderer)
     init_canvas(renderer, CANVAS_DEFAULT_WIDTH, CANVAS_DEFAULT_WIDTH, &canvas);
     init_storage(&storage, open_binary_file, close_binary_file, save_pixels_to_binary, read_pixels_from_binary);
 
-    storage.stream = storage.open_file_stream("image.bin");
-
     struct
     {
         SDL_Rect rect;
