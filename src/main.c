@@ -591,9 +591,11 @@ static void run(state_t* s)
                 break;
             }
 
+            update_mouse_state(&s->mouse);
             if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
             {
-                update_mouse_state(&s->mouse);
+                if (s->mouse.btn != SDL_BUTTON_LEFT)
+                    break;
 
                 if (is_point_in_rect(&s->mouse.pos, &palette.rect))
                 {
