@@ -199,6 +199,7 @@ static void iterate(SDL_Renderer *renderer) {
                                             CANVAS_MAX_WIDTH,
                                             CANVAS_MAX_HEIGHT);
     const int canvas_w_px = CANVAS_MAX_WIDTH;
+    float canvas_square_size = 0;
 
     SDL_SetTextureScaleMode(canvas, SDL_SCALEMODE_NEAREST);
 
@@ -239,14 +240,14 @@ static void iterate(SDL_Renderer *renderer) {
             }
         }
 
+        // TODO: Enable mutation by loading from a file
+        canvas_square_size = canvas_rect.w / (float) canvas_w_px;
         mouse_button_flags = SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
-        if (mouse_button_flags & SDL_BUTTON_LEFT && is_point_intersects_rect(&mouse_pos, &canvas_rect)) {
-            // TODO: Move up and enable mutation by loading from a file
-            const float square_size = canvas_rect.w / (float) canvas_w_px;
 
+        if (mouse_button_flags & SDL_BUTTON_LEFT && is_point_intersects_rect(&mouse_pos, &canvas_rect)) {
             const SDL_FPoint relative_pos = {.x = mouse_pos.x - canvas_rect.x, .y = mouse_pos.y - canvas_rect.y};
-            const int col = (int) (relative_pos.x / square_size);
-            const int row = (int) (relative_pos.y / square_size);
+            const int col = (int) (relative_pos.x / canvas_square_size);
+            const int row = (int) (relative_pos.y / canvas_square_size);
             const int index = col + row * canvas_w_px;
 
             uint32_t *pixels;
