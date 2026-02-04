@@ -3,6 +3,8 @@
 
 #include <SDL3/SDL.h>
 
+#define CANVAS_DEFAULT_WIDTH 0x10
+#define CANVAS_DEFAULT_HEIGHT 0x10
 #define CANVAS_MAX_WIDTH 0xFF
 #define CANVAS_MAX_HEIGHT 0xFF
 
@@ -16,7 +18,7 @@ struct canvas
     SDL_Texture* texture;
 };
 
-void init_canvas(SDL_Renderer* renderer, int w, int h, canvas_t* dest);
+void init_canvas(SDL_Renderer* renderer, uint8_t w, uint8_t h, canvas_t* dest);
 
 void destroy_canvas(canvas_t* canvas);
 
