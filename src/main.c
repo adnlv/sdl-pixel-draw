@@ -1,9 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <SDL3/SDL.h>
-
-#include "draw.h"
+#include "core/screen.h"
+#include "core/canvas.h"
+#include "core/storage.h"
 #include "core/binary_storage.h"
+#include "core/mouse.h"
 
 static const SDL_Color white = {0xFF, 0xFF, 0xFF, 0xFF};
 static const SDL_Color black = {0, 0, 0, 0xFF};
@@ -508,11 +507,18 @@ static void calculate_palette_dimensions(const int num_cells,
     }
 }
 
-static void run(state_t* s)
+static void run(SDL_Window* window, SDL_Renderer* renderer)
 {
-    // This is the default file stream, and it will be closed automatically.
-    // TODO: Manage open streams within current function scope only
-    s->storage->stream = s->storage->open_file_stream("image.bin");
+    screen_t screen;
+    canvas_t canvas;
+    storage_t storage;
+    mouse_state_t mouse;
+
+    init_screen(window, renderer, &screen);
+    init_canvas(renderer, CANVAS_MAX_WIDTH, CANVAS_MAX_WIDTH, &canvas);
+    init_storage(&storage, open_binary_file, close_binary_file, save_pixels_to_binary, read_pixels_from_binary);
+
+    storage.stream = storage.open_file_stream("image.bin");
 
     struct
     {
@@ -570,11 +576,11 @@ static void run(state_t* s)
         const int gap = 4;
         int screen_w;
         int screen_h;
-        SDL_GetCurrentRenderOutputSize(s->screen->renderer, &screen_w, &screen_h);
+        SDL_GetCurrentRenderOutputSize(screen.renderer, &screen_w, &screen_h);
 
         calculate_top_navigation_bar_dimensions(screen_w, screen_h, &top_navigation_bar.rect);
         calculate_left_navigation_bar_dimensions(screen_h, &top_navigation_bar.rect, gap, &left_navigation_bar.rect);
-        calculate_canvas_dimensions(&top_navigation_bar.rect, &left_navigation_bar.rect, gap, &s->canvas->dimensions);
+        calculate_canvas_dimensions(&top_navigation_bar.rect, &left_navigation_bar.rect, gap, &canvas.dimensions);
         calculate_picked_color_dimensions(&left_navigation_bar.rect, &picked_color.rect);
         calculate_palette_dimensions(palette.num_cells,
                                      palette.cells_per_row,
@@ -591,17 +597,17 @@ static void run(state_t* s)
                 break;
             }
 
-            update_mouse_state(&s->mouse);
+            update_mouse_state(&mouse);
             if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
             {
-                if (s->mouse.btn != SDL_BUTTON_LEFT)
+                if (mouse.btn != SDL_BUTTON_LEFT)
                     break;
 
-                if (is_point_in_rect(&s->mouse.pos, &palette.rect))
+                if (is_point_in_rect(&mouse.pos, &palette.rect))
                 {
                     for (int i = 0; i < palette.num_cells; ++i)
                     {
-                        if (is_point_in_rect(&s->mouse.pos, &palette.cell_rects[i]))
+                        if (is_point_in_rect(&mouse.pos, &palette.cell_rects[i]))
                         {
                             picked_color.color = palette.cell_colors[i];
                             break;
@@ -611,53 +617,57 @@ static void run(state_t* s)
             }
         }
 
-        update_mouse_state(&s->mouse);
+        update_mouse_state(&mouse);
 
         SDL_FRect rect;
         SDL_Color color = gray;
 
-        SDL_SetRenderDrawColor(s->screen->renderer, color.r, color.g, color.b, color.a);
-        SDL_RenderClear(s->screen->renderer);
+        SDL_SetRenderDrawColor(screen.renderer, color.r, color.g, color.b, color.a);
+        SDL_RenderClear(screen.renderer);
 
         convert_rect_to_frect(&top_navigation_bar.rect, &rect);
         color = top_navigation_bar.outline_color;
-        SDL_SetRenderDrawColor(s->screen->renderer, color.r, color.g, color.b, color.a);
-        SDL_RenderRect(s->screen->renderer, &rect);
+        SDL_SetRenderDrawColor(screen.renderer, color.r, color.g, color.b, color.a);
+        SDL_RenderRect(screen.renderer, &rect);
 
         convert_rect_to_frect(&picked_color.rect, &rect);
         color = picked_color.color;
-        SDL_SetRenderDrawColor(s->screen->renderer, color.r, color.g, color.b, color.a);
-        SDL_RenderFillRect(s->screen->renderer, &rect);
+        SDL_SetRenderDrawColor(screen.renderer, color.r, color.g, color.b, color.a);
+        SDL_RenderFillRect(screen.renderer, &rect);
 
         color = picked_color.outline_color;
-        SDL_SetRenderDrawColor(s->screen->renderer, color.r, color.g, color.b, color.a);
-        SDL_RenderRect(s->screen->renderer, &rect);
+        SDL_SetRenderDrawColor(screen.renderer, color.r, color.g, color.b, color.a);
+        SDL_RenderRect(screen.renderer, &rect);
 
         for (int i = 0; i < palette.num_cells; ++i)
         {
             convert_rect_to_frect(&palette.cell_rects[i], &rect);
             color = palette.cell_colors[i];
-            SDL_SetRenderDrawColor(s->screen->renderer, color.r, color.g, color.b, color.a);
-            SDL_RenderFillRect(s->screen->renderer, &rect);
+            SDL_SetRenderDrawColor(screen.renderer, color.r, color.g, color.b, color.a);
+            SDL_RenderFillRect(screen.renderer, &rect);
         }
 
         convert_rect_to_frect(&palette.rect, &rect);
         color = palette.outline_color;
-        SDL_SetRenderDrawColor(s->screen->renderer, color.r, color.g, color.b, color.a);
-        SDL_RenderRect(s->screen->renderer, &rect);
+        SDL_SetRenderDrawColor(screen.renderer, color.r, color.g, color.b, color.a);
+        SDL_RenderRect(screen.renderer, &rect);
 
         convert_rect_to_frect(&left_navigation_bar.rect, &rect);
         color = left_navigation_bar.outline_color;
-        SDL_SetRenderDrawColor(s->screen->renderer, color.r, color.g, color.b, color.a);
-        SDL_RenderRect(s->screen->renderer, &rect);
+        SDL_SetRenderDrawColor(screen.renderer, color.r, color.g, color.b, color.a);
+        SDL_RenderRect(screen.renderer, &rect);
 
-        convert_rect_to_frect(&s->canvas->dimensions, &rect);
+        convert_rect_to_frect(&canvas.dimensions, &rect);
         color = blue;
-        SDL_SetRenderDrawColor(s->screen->renderer, color.r, color.g, color.b, color.a);
-        SDL_RenderRect(s->screen->renderer, &rect);
+        SDL_SetRenderDrawColor(screen.renderer, color.r, color.g, color.b, color.a);
+        SDL_RenderRect(screen.renderer, &rect);
 
-        SDL_RenderPresent(s->screen->renderer);
+        SDL_RenderPresent(screen.renderer);
     }
+
+    destroy_canvas(&canvas);
+    destroy_storage(&storage);
+    destroy_screen(&screen);
 }
 
 int main(void)
@@ -672,18 +682,15 @@ int main(void)
     if (status != SDL_APP_CONTINUE)
         return status;
 
-    state_t state;
     screen_t screen;
     canvas_t canvas;
     storage_t storage;
 
     init_screen(window, renderer, &screen);
-    init_canvas(renderer, &canvas);
+    init_canvas(renderer, CANVAS_MAX_WIDTH, CANVAS_MAX_WIDTH, &canvas);
     init_storage(&storage, open_binary_file, close_binary_file, save_pixels_to_binary, read_pixels_from_binary);
-    init_state(&screen, &canvas, &storage, &state);
 
-    run(&state);
+    run(window, renderer);
 
-    destroy_state(&state);
     destroy_sdl();
 }

@@ -16,7 +16,7 @@ struct canvas
     SDL_Texture* texture;
 };
 
-void init_canvas(SDL_Renderer* renderer, canvas_t* dest);
+void init_canvas(SDL_Renderer* renderer, int w, int h, canvas_t* dest);
 
 void destroy_canvas(canvas_t* canvas);
 
