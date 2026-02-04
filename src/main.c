@@ -169,6 +169,18 @@ static uint32_t convert_rgba_to_hex(const SDL_Color *const color) {
            color->a;
 }
 
+static void fill_canvas(SDL_Texture *const canvas, const uint32_t *pixels) {
+    uint32_t *old_pixels;
+    int pitch;
+    SDL_LockTexture(canvas, NULL, (void **) &old_pixels, &pitch);
+
+    for (int i = 0; i < canvas->w * canvas->h; ++i) {
+        old_pixels[i] = pixels[i];
+    }
+
+    SDL_UnlockTexture(canvas);
+}
+
 static void fill_canvas_with_color(SDL_Texture *const canvas, const uint32_t color_hex) {
     uint32_t *pixels;
     int pitch;
@@ -186,7 +198,7 @@ static void recreate_canvas_texture(SDL_Renderer *const renderer,
                                     const uint8_t w,
                                     const uint8_t h) {
     if (*canvas != NULL) {
-        free(*canvas);
+        SDL_DestroyTexture(*canvas);
     }
 
     *canvas = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, w, h);
@@ -197,6 +209,7 @@ static void iterate(SDL_Renderer *renderer) {
     SDL_Window *window = SDL_GetRenderWindow(renderer);
     FILE *storage = open_binary_file("image.bin");
     const save_pixels_func_t save_pixels = save_pixels_to_binary;
+    const read_pixels_func_t read_pixels = read_pixels_from_binary;
 
     SDL_Event event;
     int is_running = true;
@@ -255,6 +268,20 @@ static void iterate(SDL_Renderer *renderer) {
                         }
 
                         SDL_UnlockTexture(canvas);
+                    } else if (event.key.key == SDLK_O) {
+                        uint8_t new_w = 0;
+                        uint8_t new_h = 0;
+                        uint32_t pixels[CANVAS_MAX_WIDTH * CANVAS_MAX_HEIGHT];
+
+                        if (!read_pixels(storage, &new_w, &new_h, pixels)) {
+                            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to read pixels from binary");
+                            return;
+                        }
+
+                        recreate_canvas_texture(renderer, &canvas, new_w, new_h);
+                        fill_canvas(canvas, pixels);
+
+                        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Read %d pixels from binary", new_w * new_h);
                     }
                 case SDL_EVENT_MOUSE_BUTTON_DOWN:
                     mouse_button_flags = SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
