@@ -44,10 +44,10 @@ static int create_window_and_renderer(SDL_Window **window, SDL_Renderer **render
 }
 
 static bool is_point_intersects_rect(const SDL_FPoint *const point, const SDL_FRect *const rect) {
-    return point->x >= rect->x &&
-           point->x <= rect->x + rect->w &&
-           point->y >= rect->y &&
-           point->y <= rect->y + rect->h;
+    return (int) point->x > (int) rect->x &&
+           (int) point->x < (int) (rect->x + rect->w) &&
+           (int) point->y > (int) rect->y &&
+           (int) point->y < (int) (rect->y + rect->h);
 }
 
 static void calculate_render_output_boundaries(SDL_Renderer *renderer, SDL_Rect *const dest) {
