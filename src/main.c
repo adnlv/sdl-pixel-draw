@@ -619,48 +619,48 @@ static void run(SDL_Window* window, SDL_Renderer* renderer)
 
         update_mouse_state(&mouse);
 
-        SDL_FRect rect;
-        SDL_Color color = gray;
+        SDL_FRect render_rect;
+        SDL_Color render_color = gray;
 
-        SDL_SetRenderDrawColor(screen.renderer, color.r, color.g, color.b, color.a);
+        SDL_SetRenderDrawColor(screen.renderer, render_color.r, render_color.g, render_color.b, render_color.a);
         SDL_RenderClear(screen.renderer);
 
-        convert_rect_to_frect(&top_navigation_bar.rect, &rect);
-        color = top_navigation_bar.outline_color;
-        SDL_SetRenderDrawColor(screen.renderer, color.r, color.g, color.b, color.a);
-        SDL_RenderRect(screen.renderer, &rect);
+        convert_rect_to_frect(&top_navigation_bar.rect, &render_rect);
+        render_color = top_navigation_bar.outline_color;
+        SDL_SetRenderDrawColor(screen.renderer, render_color.r, render_color.g, render_color.b, render_color.a);
+        SDL_RenderRect(screen.renderer, &render_rect);
 
-        convert_rect_to_frect(&picked_color.rect, &rect);
-        color = picked_color.color;
-        SDL_SetRenderDrawColor(screen.renderer, color.r, color.g, color.b, color.a);
-        SDL_RenderFillRect(screen.renderer, &rect);
+        convert_rect_to_frect(&picked_color.rect, &render_rect);
+        render_color = picked_color.color;
+        SDL_SetRenderDrawColor(screen.renderer, render_color.r, render_color.g, render_color.b, render_color.a);
+        SDL_RenderFillRect(screen.renderer, &render_rect);
 
-        color = picked_color.outline_color;
-        SDL_SetRenderDrawColor(screen.renderer, color.r, color.g, color.b, color.a);
-        SDL_RenderRect(screen.renderer, &rect);
+        render_color = picked_color.outline_color;
+        SDL_SetRenderDrawColor(screen.renderer, render_color.r, render_color.g, render_color.b, render_color.a);
+        SDL_RenderRect(screen.renderer, &render_rect);
 
         for (int i = 0; i < palette.num_cells; ++i)
         {
-            convert_rect_to_frect(&palette.cell_rects[i], &rect);
-            color = palette.cell_colors[i];
-            SDL_SetRenderDrawColor(screen.renderer, color.r, color.g, color.b, color.a);
-            SDL_RenderFillRect(screen.renderer, &rect);
+            convert_rect_to_frect(&palette.cell_rects[i], &render_rect);
+            render_color = palette.cell_colors[i];
+            SDL_SetRenderDrawColor(screen.renderer, render_color.r, render_color.g, render_color.b, render_color.a);
+            SDL_RenderFillRect(screen.renderer, &render_rect);
         }
 
-        convert_rect_to_frect(&palette.rect, &rect);
-        color = palette.outline_color;
-        SDL_SetRenderDrawColor(screen.renderer, color.r, color.g, color.b, color.a);
-        SDL_RenderRect(screen.renderer, &rect);
+        convert_rect_to_frect(&palette.rect, &render_rect);
+        render_color = palette.outline_color;
+        SDL_SetRenderDrawColor(screen.renderer, render_color.r, render_color.g, render_color.b, render_color.a);
+        SDL_RenderRect(screen.renderer, &render_rect);
 
-        convert_rect_to_frect(&left_navigation_bar.rect, &rect);
-        color = left_navigation_bar.outline_color;
-        SDL_SetRenderDrawColor(screen.renderer, color.r, color.g, color.b, color.a);
-        SDL_RenderRect(screen.renderer, &rect);
+        convert_rect_to_frect(&left_navigation_bar.rect, &render_rect);
+        render_color = left_navigation_bar.outline_color;
+        SDL_SetRenderDrawColor(screen.renderer, render_color.r, render_color.g, render_color.b, render_color.a);
+        SDL_RenderRect(screen.renderer, &render_rect);
 
-        convert_rect_to_frect(&canvas.dimensions, &rect);
-        color = blue;
-        SDL_SetRenderDrawColor(screen.renderer, color.r, color.g, color.b, color.a);
-        SDL_RenderRect(screen.renderer, &rect);
+        convert_rect_to_frect(&canvas.dimensions, &render_rect);
+        render_color = blue;
+        SDL_SetRenderDrawColor(screen.renderer, render_color.r, render_color.g, render_color.b, render_color.a);
+        SDL_RenderRect(screen.renderer, &render_rect);
 
         SDL_RenderPresent(screen.renderer);
     }
