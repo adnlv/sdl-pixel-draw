@@ -682,14 +682,6 @@ int main(void)
     if (status != SDL_APP_CONTINUE)
         return status;
 
-    screen_t screen;
-    canvas_t canvas;
-    storage_t storage;
-
-    init_screen(window, renderer, &screen);
-    init_canvas(renderer, CANVAS_MAX_WIDTH, CANVAS_MAX_WIDTH, &canvas);
-    init_storage(&storage, open_binary_file, close_binary_file, save_pixels_to_binary, read_pixels_from_binary);
-
     run(window, renderer);
 
     destroy_sdl();
