@@ -188,8 +188,6 @@ static void recreate_canvas_texture(SDL_Renderer *const renderer,
 
     *canvas = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, w, h);
     SDL_SetTextureScaleMode(*canvas, SDL_SCALEMODE_NEAREST);
-
-    fill_canvas_with_color(*canvas, convert_rgba_to_hex(&white));
 }
 
 static void iterate(SDL_Renderer *renderer) {
@@ -216,6 +214,7 @@ static void iterate(SDL_Renderer *renderer) {
 
     SDL_Texture *canvas = NULL;
     recreate_canvas_texture(renderer, &canvas, CANVAS_MAX_WIDTH, CANVAS_MAX_HEIGHT);
+    fill_canvas_with_color(canvas, convert_rgba_to_hex(&black));
 
     float canvas_square_size = 0;
 
