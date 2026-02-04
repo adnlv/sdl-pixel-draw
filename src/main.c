@@ -243,6 +243,19 @@ static void iterate(SDL_Renderer *renderer) {
                 case SDL_EVENT_QUIT:
                     is_running = false;
                     break;
+                case SDL_EVENT_KEY_DOWN:
+                    if (event.key.key == SDLK_S) {
+                        uint32_t *pixels;
+                        int pitch;
+                        SDL_LockTexture(canvas, NULL, (void **) &pixels, &pitch);
+
+                        if (!save_pixels(storage, canvas->w, canvas->h, pixels)) {
+                            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to save pixels to binary");
+                            return;
+                        }
+
+                        SDL_UnlockTexture(canvas);
+                    }
                 case SDL_EVENT_MOUSE_BUTTON_DOWN:
                     mouse_button_flags = SDL_GetMouseState(&mouse_pos.x, &mouse_pos.y);
                     if (mouse_button_flags != SDL_BUTTON_LEFT) {
@@ -318,18 +331,7 @@ static void iterate(SDL_Renderer *renderer) {
         display_frames_per_second(window, now);
     }
 
-    uint32_t *pixels;
-    int pitch;
-    SDL_LockTexture(canvas, NULL, (void **) &pixels, &pitch);
-
-    if (!save_pixels(storage, canvas->w, canvas->h, pixels)) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to save pixels to binary");
-        return;
-    }
-
-    SDL_UnlockTexture(canvas);
     SDL_DestroyTexture(canvas);
-
     close_binary_file(storage);
 }
 
