@@ -507,6 +507,18 @@ static void calculate_palette_dimensions(const int num_cells,
     }
 }
 
+static void fill_texture_with_color(SDL_Texture* texture, const uint32_t color_hex)
+{
+    uint32_t* pixels;
+    int pitch;
+    SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch);
+    for (int i = 0; i < texture->w * texture->h; ++i)
+        pixels[i] = color_hex;
+
+    SDL_UnlockTexture(texture);
+}
+
+
 static void run(SDL_Window* window, SDL_Renderer* renderer)
 {
     screen_t screen;
@@ -517,6 +529,8 @@ static void run(SDL_Window* window, SDL_Renderer* renderer)
     init_screen(window, renderer, &screen);
     init_canvas(renderer, CANVAS_DEFAULT_WIDTH, CANVAS_DEFAULT_WIDTH, &canvas);
     init_storage(&storage, open_binary_file, close_binary_file, save_pixels_to_binary, read_pixels_from_binary);
+
+    fill_texture_with_color(canvas.texture, 0x000000FF);
 
     struct
     {
@@ -654,6 +668,9 @@ static void run(SDL_Window* window, SDL_Renderer* renderer)
         render_color = left_navigation_bar.outline_color;
         SDL_SetRenderDrawColor(screen.renderer, render_color.r, render_color.g, render_color.b, render_color.a);
         SDL_RenderRect(screen.renderer, &render_rect);
+
+        convert_rect_to_frect(&canvas.dimensions, &render_rect);
+        SDL_RenderTexture(renderer, canvas.texture, NULL, &render_rect);
 
         convert_rect_to_frect(&canvas.dimensions, &render_rect);
         render_color = blue;

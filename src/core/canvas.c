@@ -2,7 +2,10 @@
 
 SDL_Texture* create_streaming_texture(SDL_Renderer* renderer, const uint8_t w, const uint8_t h)
 {
-    return SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, w, h);
+    SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, w, h);
+    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_PIXELART);
+
+    return texture;
 }
 
 void init_canvas(SDL_Renderer* renderer, const uint8_t w, const uint8_t h, canvas_t* dest)
