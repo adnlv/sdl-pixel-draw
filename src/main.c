@@ -617,11 +617,11 @@ static void run(SDL_Window* window, SDL_Renderer* renderer)
         SDL_Rect* cell_rects;
     } palette = {
         .outline_color = magenta,
-        .num_cells = 8,
+        .num_cells = 8, /* Matches the amount of available colors */
         .cells_per_row = 2
     };
 
-    /* Should be used only via `palette.cell_colors` and `palette.cell_colors` respectfully */
+    /* Should be used only via `palette.cell_colors` and `palette.cell_colors` respectively */
     SDL_Color _palette_colors[] = {red, green, blue, yellow, cyan, magenta, white, black};
     SDL_Rect _palette_color_rects[palette.num_cells];
 
