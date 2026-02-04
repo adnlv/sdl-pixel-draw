@@ -2,7 +2,10 @@
 #include <stdlib.h>
 #include <SDL3/SDL.h>
 
-#include "canvas.h"
+#include "core/binary_storage.h"
+
+#define CANVAS_MAX_WIDTH 0xFF
+#define CANVAS_MAX_HEIGHT 0xFF
 
 static const SDL_Color white = {0xFF, 0xFF, 0xFF, 0xFF};
 static const SDL_Color black = {0, 0, 0, 0xFF};
@@ -192,6 +195,9 @@ static void recreate_canvas_texture(SDL_Renderer *const renderer,
 
 static void iterate(SDL_Renderer *renderer) {
     SDL_Window *window = SDL_GetRenderWindow(renderer);
+    FILE *storage = open_binary_file("image.bin");
+    const save_pixels_func_t save_pixels = save_pixels_to_binary;
+
     SDL_Event event;
     int is_running = true;
 
@@ -312,7 +318,19 @@ static void iterate(SDL_Renderer *renderer) {
         display_frames_per_second(window, now);
     }
 
+    uint32_t *pixels;
+    int pitch;
+    SDL_LockTexture(canvas, NULL, (void **) &pixels, &pitch);
+
+    if (!save_pixels(storage, canvas->w, canvas->h, pixels)) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to save pixels to binary");
+        return;
+    }
+
+    SDL_UnlockTexture(canvas);
     SDL_DestroyTexture(canvas);
+
+    close_binary_file(storage);
 }
 
 static void destroy_window_and_renderer(SDL_Window *window, SDL_Renderer *renderer) {
