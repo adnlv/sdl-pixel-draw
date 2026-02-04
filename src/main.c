@@ -131,8 +131,7 @@ static void render_color_palette(SDL_Renderer *const renderer,
     palette_box.w = size;
     palette_box.h = size;
 
-    int i = 0;
-    for (; i < colors_length; ++i) {
+    for (int i = 0; i < colors_length; ++i) {
         SDL_FRect *box = &rects[i];
         const SDL_Color color = colors[i];
 
@@ -171,14 +170,10 @@ static void iterate(SDL_Renderer *renderer) {
     SDL_Window *window = SDL_GetRenderWindow(renderer);
     SDL_Event event;
     int is_running = true;
-    const float gray_color_fac = 0.2f;
 
     const SDL_Color palette[] = {red, green, blue, yellow, magenta, cyan, white, black};
     const int palette_length = sizeof(palette) / sizeof(palette[0]);
     SDL_FRect palette_color_rects[palette_length];
-    const int palette_colors_per_row = 2;
-
-    const float gap = 4.0f;
 
     SDL_Rect out;
     SDL_FRect top_navigation_bar;
@@ -198,12 +193,15 @@ static void iterate(SDL_Renderer *renderer) {
                                             SDL_TEXTUREACCESS_STREAMING,
                                             CANVAS_MAX_WIDTH,
                                             CANVAS_MAX_HEIGHT);
-    const int canvas_w_px = CANVAS_MAX_WIDTH;
     float canvas_square_size = 0;
 
     SDL_SetTextureScaleMode(canvas, SDL_SCALEMODE_NEAREST);
 
     while (is_running) {
+        const float gap = 4.0f;
+        const int palette_colors_per_row = 2;
+        const int canvas_w_px = CANVAS_MAX_WIDTH;
+        const float gray_color_fac = 0.2f;
         const Uint64 now = SDL_GetPerformanceCounter();
 
         calculate_render_output_boundaries(renderer, &out);
@@ -226,8 +224,7 @@ static void iterate(SDL_Renderer *renderer) {
                     }
 
                     if (is_point_intersects_rect(&mouse_pos, &color_palette_rect)) {
-                        int i;
-                        for (i = 0; i < palette_length; ++i) {
+                        for (int i = 0; i < palette_length; ++i) {
                             if (is_point_intersects_rect(&mouse_pos, &palette_color_rects[i])) {
                                 picked_color = palette[i];
                                 picked_color_hex = convert_rgba_to_hex(&picked_color);
