@@ -534,15 +534,22 @@ static void draw_pixel(canvas_t* canvas, const mouse_state_t* mouse, const uint3
     canvas->grid_cell_size.x = canvas->dimensions.w / canvas->grid_dimensions.w;
     canvas->grid_cell_size.y = canvas->grid_cell_size.x;
 
-    const SDL_FRect relative_position = {
-        .x = mouse->pos.x - (float)canvas->dimensions.x,
-        .y = mouse->pos.y - (float)canvas->dimensions.y,
+    const SDL_Rect relative_position = {
+        .x = (int)mouse->pos.x - canvas->dimensions.x,
+        .y = (int)mouse->pos.y - canvas->dimensions.y,
     };
 
-    const SDL_Rect grid_position = {
-        .x = (int)relative_position.x / canvas->grid_cell_size.x,
-        .y = (int)relative_position.y / canvas->grid_cell_size.y,
+    SDL_Point grid_position = {
+        .x = relative_position.x / canvas->grid_cell_size.x,
+        .y = relative_position.y / canvas->grid_cell_size.y,
     };
+
+    /*
+     * Make sure grid position doesn't go out of bounce.
+     * Maybe I should've fixed the calculation algorithm in some way, but I am too lazy to do this.
+     */
+    grid_position.x = grid_position.x != canvas->grid_dimensions.w ? grid_position.x : grid_position.x - 1;
+    grid_position.y = grid_position.y != canvas->grid_dimensions.h ? grid_position.y : grid_position.y - 1;
 
     const int grid_index = grid_position.y * canvas->grid_dimensions.w + grid_position.x;
 
