@@ -447,11 +447,13 @@ int main(void)
 
     SDL_Window* window = NULL;
     SDL_Renderer* renderer = NULL;
+
     status = create_window_and_renderer(&window, &renderer);
     if (status != SDL_APP_CONTINUE)
         return status;
 
     run(window, renderer);
 
+    // TODO: Destroy the window and renderer here instead of in run().
     destroy_sdl();
 }
