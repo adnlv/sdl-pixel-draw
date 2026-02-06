@@ -176,6 +176,8 @@ static void fill_texture_with_color(SDL_Texture* texture, const uint32_t color_h
 
 static void draw_pixel(canvas_t* canvas, const mouse_state_t* mouse, const uint32_t color_hex)
 {
+    // FIXME: The offset increases as the cursor moves farther away from the beginning of the coordinates.
+
     canvas->grid_cell_size.x = canvas->dimensions.w / canvas->grid_dimensions.w;
     canvas->grid_cell_size.y = canvas->grid_cell_size.x;
 
