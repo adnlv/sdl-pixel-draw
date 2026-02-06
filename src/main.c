@@ -254,6 +254,18 @@ static bool load_canvas(const storage_t* storage, const char* path, canvas_t* ca
     return true;
 }
 
+static void clear_texture(SDL_Texture* texture)
+{
+    uint32_t* pixels;
+    int pitch;
+    SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch);
+
+    for (int i = 0; i < texture->w * texture->h; ++i)
+        pixels[i] = 0;
+
+    SDL_UnlockTexture(texture);
+}
+
 static void run(SDL_Window* window, SDL_Renderer* renderer)
 {
     screen_t screen;
@@ -356,6 +368,8 @@ static void run(SDL_Window* window, SDL_Renderer* renderer)
                     save_texture(&storage, "saved.bin", canvas.texture);
                 else if (event.key.key == SDLK_O)
                     load_canvas(&storage, "saved.bin", &canvas);
+                else if (event.key.key == SDLK_C)
+                    clear_texture(canvas.texture);
 
                 break;
             }
