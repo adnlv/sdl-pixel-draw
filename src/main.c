@@ -4,6 +4,8 @@
 #include "core/binary_storage.h"
 #include "core/mouse.h"
 
+#include <SDL3_image/SDL_image.h>
+
 static const SDL_Color white = {0xFF, 0xFF, 0xFF, 0xFF};
 static const SDL_Color black = {0, 0, 0, 0xFF};
 static const SDL_Color gray = {0x20, 0x20, 0x20, 0xFF};
@@ -323,12 +325,26 @@ static void run(SDL_Window* window, SDL_Renderer* renderer)
         SDL_Rect* cell_rects;
     } palette = {
         .outline_color = magenta,
-        .num_cells = 8, /* Matches the amount of available colors */
-        .cells_per_row = 2
+        .num_cells = 9, /* Matches the amount of available colors */
+        .cells_per_row = 3
     };
 
+    struct
+    {
+        SDL_Texture* texture;
+        uint32_t color_hex;
+    } transparent = {
+        .color_hex = 0,
+        .texture = IMG_LoadTexture(renderer, "assets/forbidden.png")
+    };
+    if (transparent.texture == NULL)
+    {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load texture: %s", SDL_GetError());
+        return;
+    }
+
     /* Should be used only via `palette.cell_colors` and `palette.cell_colors` respectively */
-    SDL_Color _palette_colors[] = {red, green, blue, yellow, cyan, magenta, white, black};
+    SDL_Color _palette_colors[] = {red, green, blue, yellow, cyan, magenta, white, black, (SDL_Color){0}};
     SDL_Rect _palette_color_rects[palette.num_cells];
 
     palette.cell_colors = _palette_colors;
@@ -413,21 +429,31 @@ static void run(SDL_Window* window, SDL_Renderer* renderer)
         SDL_RenderRect(screen.renderer, &render_rect);
 
         convert_rect_to_frect(&picked_color.rect, &render_rect);
-        render_color = picked_color.color;
-        SDL_SetRenderDrawColor(screen.renderer, render_color.r, render_color.g, render_color.b, render_color.a);
-        SDL_RenderFillRect(screen.renderer, &render_rect);
+        if (picked_color.hex != transparent.color_hex)
+        {
+            render_color = picked_color.color;
+            SDL_SetRenderDrawColor(screen.renderer, render_color.r, render_color.g, render_color.b, render_color.a);
+            SDL_RenderFillRect(screen.renderer, &render_rect);
+        }
+        else
+        {
+            SDL_RenderTexture(renderer, transparent.texture, NULL, &render_rect);
+        }
 
         render_color = picked_color.outline_color;
         SDL_SetRenderDrawColor(screen.renderer, render_color.r, render_color.g, render_color.b, render_color.a);
         SDL_RenderRect(screen.renderer, &render_rect);
 
-        for (int i = 0; i < palette.num_cells; ++i)
+        for (int i = 0; i < palette.num_cells - 1; ++i)
         {
             convert_rect_to_frect(&palette.cell_rects[i], &render_rect);
             render_color = palette.cell_colors[i];
             SDL_SetRenderDrawColor(screen.renderer, render_color.r, render_color.g, render_color.b, render_color.a);
             SDL_RenderFillRect(screen.renderer, &render_rect);
         }
+
+        convert_rect_to_frect(&palette.cell_rects[palette.num_cells - 1], &render_rect);
+        SDL_RenderTexture(renderer, transparent.texture, NULL, &render_rect);
 
         convert_rect_to_frect(&palette.rect, &render_rect);
         render_color = palette.outline_color;
@@ -449,6 +475,8 @@ static void run(SDL_Window* window, SDL_Renderer* renderer)
 
         SDL_RenderPresent(screen.renderer);
     }
+
+    SDL_DestroyTexture(transparent.texture);
 
     destroy_canvas(&canvas);
     destroy_storage(&storage);
