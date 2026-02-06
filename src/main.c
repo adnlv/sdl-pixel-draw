@@ -227,7 +227,7 @@ static bool save_texture(const storage_t* storage, const char* path, SDL_Texture
     return true;
 }
 
-static bool load_canvas(const storage_t* storage, const char* path, canvas_t* canvas)
+static bool load_canvas(SDL_Renderer* renderer, const storage_t* storage, const char* path, canvas_t* canvas)
 {
     FILE* saved = storage->open_file_stream(path);
     uint8_t saved_w = 0;
@@ -241,6 +241,11 @@ static bool load_canvas(const storage_t* storage, const char* path, canvas_t* ca
     }
 
     storage->close_file_stream(saved);
+
+    if (canvas->texture != NULL)
+        SDL_DestroyTexture(canvas->texture);
+
+    canvas->texture = create_streaming_texture(renderer, saved_w, saved_h);
 
     uint32_t* pixels;
     int pitch;
@@ -276,7 +281,7 @@ static void run(SDL_Window* window, SDL_Renderer* renderer)
     mouse_state_t mouse;
 
     init_screen(window, renderer, &screen);
-    init_canvas(renderer, CANVAS_DEFAULT_WIDTH, CANVAS_DEFAULT_WIDTH, &canvas);
+    init_canvas(renderer, CANVAS_DEFAULT_WIDTH, CANVAS_DEFAULT_HEIGHT, &canvas);
     init_storage(&storage, open_binary_file, close_binary_file, save_pixels_to_binary, read_pixels_from_binary);
 
     const uint32_t canvas_default_color_hex = convert_rgba_to_hex(&black);
@@ -383,7 +388,7 @@ static void run(SDL_Window* window, SDL_Renderer* renderer)
                 if (event.key.key == SDLK_S)
                     save_texture(&storage, "saved.bin", canvas.texture);
                 else if (event.key.key == SDLK_O)
-                    load_canvas(&storage, "saved.bin", &canvas);
+                    load_canvas(renderer, &storage, "saved.bin", &canvas);
                 else if (event.key.key == SDLK_C)
                     clear_texture(canvas.texture);
                 else if (event.key.key == SDLK_F)

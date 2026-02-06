@@ -22,4 +22,6 @@ void init_canvas(SDL_Renderer* renderer, uint8_t w, uint8_t h, canvas_t* dest);
 
 void destroy_canvas(canvas_t* canvas);
 
+SDL_Texture* create_streaming_texture(SDL_Renderer* renderer, const uint8_t w, const uint8_t h);
+
 #endif //SDL_PIXEL_DRAW_CANVAS_H
