@@ -370,6 +370,8 @@ static void run(SDL_Window* window, SDL_Renderer* renderer)
                     load_canvas(&storage, "saved.bin", &canvas);
                 else if (event.key.key == SDLK_C)
                     clear_texture(canvas.texture);
+                else if (event.key.key == SDLK_F)
+                    fill_texture_with_color(canvas.texture, picked_color.hex);
 
                 break;
             }
